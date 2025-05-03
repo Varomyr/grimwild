@@ -20,12 +20,12 @@
                              :duplicate="duplicateResult"
                              :delete="deleteResult">
         <template v-slot:selects="slotProps">
-          <crucible-select v-model="slotProps.item.selectedAdjective"
-                           :option-items="slotProps.item.adjectives"
+          <crucible-select v-model="slotProps.item.selectedPrefix"
+                           :option-items="slotProps.item.prefixes"
                            empty-text="- Prefix wählen -">
           </crucible-select>
-          <crucible-select v-model="slotProps.item.selectedNoun"
-                           :option-items="slotProps.item.nouns"
+          <crucible-select v-model="slotProps.item.selectedSuffix"
+                           :option-items="slotProps.item.suffixes"
                            empty-text="- Suffix wählen -">
           </crucible-select>
         </template>
@@ -66,16 +66,16 @@
 
   class Result {
     constructor (prefixes, suffixes, prefixRoll, suffixRoll) {
-      this.adjectiveRoll = prefixRoll
-      this.nounRoll = suffixRoll
-      this.adjectives = prefixes;
-      this.nouns = suffixes;
+      this.prefixRoll = prefixRoll
+      this.suffixRoll = suffixRoll
+      this.prefixes = prefixes;
+      this.suffixes = suffixes;
 
       this.edit = true;
       this.value = '';
 
-      this.selectedAdjective = [...prefixes][0];
-      this.selectedNoun = [...suffixes][0];
+      this.selectedPrefix = [...prefixes][0];
+      this.selectedSuffix = [...suffixes][0];
 
     }
 
@@ -132,16 +132,16 @@
 
       return {
         results,
-        prefixRoll: natureRoll,
-        suffixRoll: desireRoll,
-        prefixes: adjectives,
-        suffixes: desires
+        prefixRoll,
+        suffixRoll,
+        prefixes,
+        suffixes
       }
     },
     methods: {
       getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
-        const adjective = this.adjectives.getValue(adjectiveRoll);
-        const noun = this.nouns.getValue(nounRoll);
+        const adjective = this.prefixes.getValue(adjectiveRoll);
+        const noun = this.suffixes.getValue(nounRoll);
 
         const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
         result.submit();
@@ -156,9 +156,9 @@
       },
       addResult (){
         let result;
-        if (this.rollInputValid(this.adjectiveRoll)
-          && this.rollInputValid(this.nounRoll)) {
-          result = this.getResult(this.adjectiveRoll, this.nounRoll);
+        if (this.rollInputValid(this.prefixRoll)
+          && this.rollInputValid(this.suffixRoll)) {
+          result = this.getResult(this.prefixRoll, this.suffixRoll);
         } else {
           result = this.getResult();
         }
