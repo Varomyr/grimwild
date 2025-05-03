@@ -7,14 +7,15 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
   <meta charset="UTF-8">
-  <title>Grimwild - Kräuterkunde Crucible</title>
+  <title>Grimwild - GM Crucible</title>
 
 </head>
 <body>
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <h1 class="my-3">Kräuterkunde Crucible</h1>
+      <h1 class="my-3">Patron Crucible</h1>
+      <p>Zusammensetzen und Interpretieren</p>
       <crucible-result-input :result-items="results"
                              :submit="submitResult"
                              :duplicate="duplicateResult"
@@ -22,31 +23,38 @@
         <template v-slot:selects="slotProps">
           <crucible-select v-model="slotProps.item.selectedAdjective"
                            :option-items="slotProps.item.prefixes"
-                           empty-text="- Prefix wählen -">
+                           empty-text="- Natur wählen -">
           </crucible-select>
           <crucible-select v-model="slotProps.item.selectedNoun"
                            :option-items="slotProps.item.suffixes"
-                           empty-text="- Suffix wählen -">
+                           empty-text="- Verlangen wählen -">
           </crucible-select>
         </template>
+
+        <template v-slot:index="slotProps">
+          <div class="col-2 py-2">
+            {{slotProps.index + 1}}: {{slotProps.item.prefixRoll.join(', ')}} x {{slotProps.item.suffixRoll.join(', ')}}
+          </div>
+        </template>
+
 
       </crucible-result-input>
 
       <div class="row my-3">
-        <dice-throw-input v-model="adjectiveRoll"
-                          input-name="Prefix Wurf">
+        <dice-throw-input v-model="natureRoll"
+                          input-name="Natur wurf">
         </dice-throw-input>
-        <dice-throw-input v-model="nounRoll"
-                          input-name="Suffix Wurf">
+        <dice-throw-input v-model="desireRoll"
+                          input-name="Verlangen wurf">
         </dice-throw-input>
         <div class="col">
           <button type="button" class="btn btn-primary" @click="addResult()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
       </div>
 
-      <crucible-data-table heading="Kräuterkunde Crucible Daten"
-                           :crucibles="[adjectives, nouns]"
-                           :crucible-names="['Prefix', 'Suffix']">
+      <crucible-data-table heading="Patron Crucible Daten"
+                           :crucibles="[natures, desires]"
+                           :crucible-names="['Adjektive', 'Substantive']">
       </crucible-data-table>
     </div>
     <page-footer></page-footer>
@@ -65,9 +73,9 @@
   import PageFooter from "./PageFooter.js";
 
   class Result {
-    constructor (adjectives, nouns, prefixRoll, suffixRoll) {
-      this.prefixRoll = prefixRoll
-      this.suffixRoll = suffixRoll
+    constructor (adjectives, nouns, adjectiveRoll, nounRoll) {
+      this.prefixRoll = adjectiveRoll
+      this.suffixRoll = nounRoll
       this.prefixes = adjectives;
       this.suffixes = nouns;
 
@@ -86,14 +94,14 @@
     }
 
     isSubmittable () {
-      const elements = [this.prefixes, this.suffixes]
+      const elements = [this.natures, this.desires]
       return elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
     }
 
     submit () {
       if (this.isSubmittable()) {
         this.edit = false
-        this.value = `${this.selectedAdjective}-${this.selectedNoun}`;
+        this.value = `${this.selectedAdjective} ${this.selectedNoun}`;
       }
     }
   }
@@ -109,33 +117,33 @@
     },
     setup() {
       const results = reactive([]);
-      const adjectiveRoll = ref([]);
-      const nounRoll = ref([]);
+      const natureRoll = ref([]);
+      const desireRoll = ref([]);
 
-      const adjectives = new Crucible([
-        [ "Drossel", "Stern", "Sonnen", "Traum", "Dunst", "Schock" ],
-        [ "Kleb", "Stein", "Mond", "Feder", "Ruß", "Spreng" ],
-        [ "Woll", "Staub", "Teufels", "Wild", "Frier", "Blut" ],
-        [ "Rauch", "Schlangen", "Honig", "Spiegel", "Stech", "Tinten" ],
-        [ "Kreisch", "Mimik", "Ziegen", "Wurm", "Stahl", "Stink" ],
-        [ "Kicher", "Nadel", "Nacht", "Schwell", "Feen", "Drache" ]
+      const natures = new Crucible([
+        [ "Zahnräder", "Abgrung", "Geißel", "Schatten", "Schleier", "Hohl (Hollow)" ],
+        [ "Chimäre", "Schlange", "Flamme", "Grüner", "Außenseiter", "Gleichgewicht" ],
+        [ "Leere", "Schmiede", "Phoenix", "Geflüster", "Trickster", "Unhold" ],
+        [ "Toter Gott", "Dorn", "Tiefen", "Sensenmann", "Gewitter(Tempest)", "Sturm" ],
+        [ "Ewige", "Vorbote", "Gezeiten", "Prisma", "Leviathan", "Drache" ],
+        [ "Grabtuch", "Echo", "Sternenkind", "Träumer", "Licht", "Schatten" ]
       ]);
 
-      const nouns = new Crucible([
-        [ "Kappe", "Lilie", "Distel", "Schote", "Stiel", "Blütenblatt" ],
-        [ "Wurz", "Schilf", "Glocke", "Knospe", "Trieb", "Bohne" ],
-        [ "Rose", "Blume", "Blatt", "Zunge", "Rinde", "Knolle" ],
-        [ "Busch", "Wurzel", "Holz", "Beere", "Trichter", "Rebe" ],
-        [ "Pliz", "Stachel", "Gras", "Spitze", "Moos", "Samen" ],
-        [ "Spross", "Schatten", "Dorn", "Bann", "Zweig", "Kraut" ]
+      const desires = new Crucible([
+        [ "Chaos", "Schönheit", "Köpfe (Minds)", "Wohlstand", "Raritäten", "Zerstörung" ],
+        [ "Geheimnis", "Spaß", "Kontrolle", "Magie", "Alles", "Denkmäler" ],
+        [ "Macht", "Sieg", "Urteil", "Eintracht", "Seelen", "Biomasse" ],
+        [ "Anbeter:innen", "Anbetung", "Angst", "Ruhm", "Rache", "Wissen" ],
+        [ "Versprechen", "Reinheit", "Fortschritt", "Kuriositäten", "Wahrheit", "Schätze" ],
+        [ "Einfluss", "Leben", "Teritorium", "Perfektion", "Ordnung", "Entropie" ]
       ]);
 
       return {
         results,
-        prefixRoll: adjectiveRoll,
-        suffixRoll: nounRoll,
-        prefixes: adjectives,
-        suffixes: nouns
+        natureRoll: prefixRoll,
+        desireRoll: suffixRoll,
+        natures: prefixes,
+        desires: suffixes
       }
     },
     methods: {
