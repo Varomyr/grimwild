@@ -35,7 +35,31 @@
           <button type="button" class="btn btn-primary" @click="addResult()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
       </div>
-
+      <h2 class="mt-5">GM Crucible Daten</h2>
+      <div class="row">
+        <table class="table table-hover">
+          <thead>
+          <th></th>
+          <th></th>
+          <th>1</th>
+          <th>2</th>
+          <th>3</th>
+          <th>4</th>
+          <th>5</th>
+          <th>6</th>
+          </thead>
+          <tr v-for="(row, index) in adjectives.data" :class="{'table-group-divider': index === 0}">
+            <th v-if="index === 0" rowspan="6" scope="rowgroup">Adjektiv</th>
+            <th scope="row">{{index + 1}}</th>
+            <td v-for="item in row">{{item}}</td>
+          </tr>
+          <tr v-for="(row, index) in nouns.data" :class="{'table-group-divider': index === 0}">
+            <th v-if="index === 0" rowspan="6" scope="row">Substantiv</th>
+            <th scope="row">{{index + 1}}</th>
+            <td v-for="item in row">{{item}}</td>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
   <footer class=" my-3 text-center">
@@ -53,25 +77,6 @@
       return this.data[x -1 ][y - 1];
     }
   }
-
-  const adjectives = new Crucible([
-    [ "zäh", "ruhig", "prekär", "wild", "mysteriös", "rustikal" ],
-    [ "gedämpft", "gealtert", "romantisch", "bedrohlich", "rätselhaft", "unheimlich" ],
-    [ "kaputt", "schwindend", "fern", "lebensgefährlich", "düster", "angespannt" ],
-    [ "vergessen", "reichlich", "versteckt", "verwelkt", "chaotisch", "drohend" ],
-    [ "festlich", "verloren", "immens", "heiter", "lebendig", "flackernd" ],
-    [ "zerklüftet", "zersplittert", "heilig", "schonungslos", "verworren", "verdreht" ]
-  ]);
-
-  const nouns = new Crucible([
-    [ "Reise", "Kreuzung", "Spalt", "Plan", "Knotenpunkt(Nexus)", "Team" ],
-    [ "Beben", "Trümmer", "Symbol", "Narbe", "Archiv", "Abgrund" ],
-    [ "Heiligtum", "Verrat", "Pfad", "Ödland", "Hilfe", "Mysterium" ],
-    [ "Gipfel", "Schwelle", "Grenze", "Leuchtfeuer", "Geheimnis", "Wand" ],
-    [ "Territorium", "Gerücht", "Unentschieden", "Zwietracht", "Labyrinth", "Pakt" ],
-    [ "Dilemma", "Tradition", "Jackpot", "Omen", "Täuschung", "Illusion" ]
-  ]);
-
 
   class Result {
     constructor (adjective, noun, adjectiveRoll, nounRoll) {
@@ -130,16 +135,36 @@
       const adjectiveRoll = ref([]);
       const nounRoll = ref([]);
 
+      const adjectives = new Crucible([
+        [ "zäh", "ruhig", "prekär", "wild", "mysteriös", "rustikal" ],
+        [ "gedämpft", "gealtert", "romantisch", "bedrohlich", "rätselhaft", "unheimlich" ],
+        [ "kaputt", "schwindend", "fern", "lebensgefährlich", "düster", "angespannt" ],
+        [ "vergessen", "reichlich", "versteckt", "verwelkt", "chaotisch", "drohend" ],
+        [ "festlich", "verloren", "immens", "heiter", "lebendig", "flackernd" ],
+        [ "zerklüftet", "zersplittert", "heilig", "schonungslos", "verworren", "verdreht" ]
+      ]);
+
+      const nouns = new Crucible([
+        [ "Reise", "Kreuzung", "Spalt", "Plan", "Knotenpunkt(Nexus)", "Team" ],
+        [ "Beben", "Trümmer", "Symbol", "Narbe", "Archiv", "Abgrund" ],
+        [ "Heiligtum", "Verrat", "Pfad", "Ödland", "Hilfe", "Mysterium" ],
+        [ "Gipfel", "Schwelle", "Grenze", "Leuchtfeuer", "Geheimnis", "Wand" ],
+        [ "Territorium", "Gerücht", "Unentschieden", "Zwietracht", "Labyrinth", "Pakt" ],
+        [ "Dilemma", "Tradition", "Jackpot", "Omen", "Täuschung", "Illusion" ]
+      ]);
+
       return {
         results,
-        adjectiveRoll: adjectiveRoll,
-        nounRoll: nounRoll
+        adjectiveRoll,
+        nounRoll,
+        adjectives,
+        nouns
       }
     },
     methods: {
       getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
-        const adjective = adjectives.getValue(adjectiveRoll);
-        const noun = nouns.getValue(nounRoll);
+        const adjective = this.adjectives.getValue(adjectiveRoll);
+        const noun = this.nouns.getValue(nounRoll);
 
         return new Result(adjective, noun, adjectiveRoll, nounRoll)
       },
