@@ -40,17 +40,15 @@
                            :crucibles="[adjectives, nouns]"
                            :crucible-names="['Adjektive', 'Substantive']">
       </crucible-data-table>
-
+    </div>
+    <page-footer></page-footer>
   </div>
-  <footer class=" my-3 text-center">
-    This Tool is based on Grimwild © 2024 by J.D. Maxwell and Oddity Press, licensed under CC BY 4.0.
-  </footer>
-
 </body>
 <script type="module">
   import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
   import { rollDice } from "./randomDice.js";
   import CrucibleDataTable from "./CrucibleDataTable.js";
+  import PageFooter from "./PageFooter.js";
 
   class Crucible {
     constructor (data) {
@@ -100,7 +98,8 @@
 
   createApp({
     components: {
-      CrucibleDataTable
+      CrucibleDataTable,
+      PageFooter
     },
     setup() {
       const results = reactive([]);

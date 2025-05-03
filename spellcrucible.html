@@ -81,9 +81,7 @@
                         :crucibles="[style, essence, form, {data: Object.entries(schoolDescriptions)}]"
                         :crucible-names="['Stil', 'Wesen', 'Form', 'Schule der Magie']"></crucibe-data-table>
     </div>
-    <footer class=" my-3 text-center">
-      This Tool is based on Grimwild © 2024 by J.D. Maxwell and Oddity Press, licensed under CC BY 4.0.
-    </footer>
+    <page-footer></page-footer>
   </div>
 
 </body>
@@ -91,6 +89,7 @@
   import { createApp, ref, computed, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
   import { rollDice } from "./randomDice.js";
   import Crucible from "./Crucible.js";
+  import PageFooter from "./PageFooter.js";
 
   import CrucibeDataTable from "./CrucibleDataTable.js";
 
@@ -140,7 +139,8 @@
 
   createApp({
     components: {
-      CrucibeDataTable
+      CrucibeDataTable,
+      PageFooter
     },
     setup() {
       const style = new Crucible([
