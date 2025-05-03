@@ -12,6 +12,7 @@
 </head>
 <body>
   <div id="app">
+    <page-nav-bar></page-nav-bar>
     <div class="container">
       <h1 class="my-3">Abstammungs-Generator</h1>
       <p>Wähle 2 oder 3 (Volk, Laune, Land), interpretiere dann das Ergebnis</p>
@@ -69,6 +70,7 @@
   import CrucibleSelect from "./CrucibleSelect.js";
   import DiceThrowInput from "./DiceThrowInput.js";
   import CrucibleResultInput from "./CrucibleResultInput.js";
+  import PageNavBar from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
 
   class Heritage {
@@ -126,6 +128,7 @@
       CrucibleSelect,
       DiceThrowInput,
       CrucibleResultInput,
+      PageNavBar,
       PageFooter
     },
     setup() {

@@ -12,13 +12,16 @@
 </head>
 <body>
 <div id="app">
+  <page-nav-bar></page-nav-bar>
   <div class="container">
     <h1 class="my-3">Grimwild Tools</h1>
-    <a href="gm.html" target="_blank">GM Crucible</a>
-    <a href="heritage.html" target="_blank">Heritage Crucible</a>
-    <a href="spellcrucible.html"  target="_blank">Spell Crucible</a>
-    <a href="surge.html"  target="_blank">Wild Surge Crucible</a>
-    <a href="herbalism.html"  target="_blank">Herbalism Crucible</a>
+    <ul class="nav flex-column">
+      <li class="nav-item"><a href="gm.html" class="nav-link">GM Crucible</a></li>
+      <li class="nav-item"><a href="herbalism.html" class="nav-link">Herbalism</a></li>
+      <li class="nav-item"><a href="heritage.html" class="nav-link">Heritage</a></li>
+      <li class="nav-item"><a href="spellcrucible.html" class="nav-link">Spell Crucible</a></li>
+      <li class="nav-item"><a href="surge.html" class="nav-link">Wild Surge Crucible</a></li>
+    </ul>
 
   </div>
 </div>
@@ -27,4 +30,18 @@
 </footer>
 
 </body>
+
+<script type="module">
+  import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+  import PageNavBar from "./PageNavBar.js";
+  import PageFooter from "./PageFooter.js";
+
+  createApp({
+    components: {
+      PageNavBar,
+      PageFooter
+    }
+  }).mount('#app')
+
+</script>
 </html>

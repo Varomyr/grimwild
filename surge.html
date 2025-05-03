@@ -12,6 +12,7 @@
 </head>
 <body>
   <div id="app">
+    <page-nav-bar></page-nav-bar>
     <div class="container">
       <h1 class="my-3">Wild Surge Crucible</h1>
       <p>Zusammensetzen und Interpretieren</p>
@@ -68,6 +69,7 @@
   import CrucibleResultInput from "./CrucibleResultInput.js";
   import CrucibleSelect from "./CrucibleSelect.js";
   import DiceThrowInput from "./DiceThrowInput.js";
+  import PageNavBar  from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
 
   class Result {
@@ -110,6 +112,7 @@
       CrucibleResultInput,
       DiceThrowInput,
       CrucibleSelect,
+      PageNavBar,
       PageFooter
     },
     setup() {

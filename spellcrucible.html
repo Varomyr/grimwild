@@ -11,6 +11,7 @@
 </head>
 <body>
   <div id="app">
+    <page-nav-bar></page-nav-bar>
     <div class="container">
       <h1 class="my-3">Zauberspruch Generator</h1>
       <p>Wähle 2 (Stil, Wesen, Form) und weise eine Schule zu.</p>
@@ -94,6 +95,7 @@
   import CrucibleSelect from "./CrucibleSelect.js";
   import DiceThrowInput from "./DiceThrowInput.js";
   import CrucibleResultInput from "./CrucibleResultInput.js";
+  import PageNavBar from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
 
   class Spell {
@@ -146,6 +148,7 @@
       CrucibleSelect,
       DiceThrowInput,
       CrucibleResultInput,
+      PageNavBar,
       PageFooter
     },
     setup() {
