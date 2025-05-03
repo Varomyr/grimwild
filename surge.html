@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html  lang="de">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <meta charset="UTF-8">
+  <title>Grimwild - Wild Surge Crucible</title>
+
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1 class="my-3">Wild Surge Crucible</h1>
+      <p>Zusammensetzen und Interpretieren</p>
+      <crucible-result-input :result-items="results"
+                             :submit="submitResult"
+                             :duplicate="duplicateResult"
+                             :delete="deleteResult">
+        <template v-slot:selects="slotProps">
+          <crucible-select v-model="slotProps.item.selectedAdjective"
+                           :option-items="slotProps.item.adjectives"
+                           empty-text="- Wort 1 wählen -">
+          </crucible-select>
+          <crucible-select v-model="slotProps.item.selectedNoun"
+                           :option-items="slotProps.item.nouns"
+                           empty-text="- Wort 2 wählen -">
+          </crucible-select>
+        </template>
+
+        <template v-slot:index="slotProps">
+          <div class="col-2 py-2">
+            {{slotProps.index + 1}}: {{slotProps.item.adjectiveRoll.join(', ')}} x {{slotProps.item.nounRoll.join(', ')}}
+          </div>
+        </template>
+
+
+      </crucible-result-input>
+
+      <div class="row my-3">
+        <dice-throw-input v-model="adjectiveRoll"
+                          input-name="Wurf 1">
+        </dice-throw-input>
+        <dice-throw-input v-model="nounRoll"
+                          input-name="Wurf 2">
+        </dice-throw-input>
+        <div class="col">
+          <button type="button" class="btn btn-primary" @click="addResult()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
+        </div>
+      </div>
+
+      <crucible-data-table heading="Wild Surge Crucible Daten"
+                           :crucibles="[adjectives, nouns]"
+                           :crucible-names="['Wort 1', 'Wort 2']">
+      </crucible-data-table>
+    </div>
+    <page-footer></page-footer>
+  </div>
+</body>
+<script type="module">
+  import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+  import { rollDice } from "./randomDice.js";
+  import Crucible from "./Crucible.js";
+
+  import CrucibleDataTable from "./CrucibleDataTable.js";
+  import CrucibleResultInput from "./CrucibleResultInput.js";
+  import CrucibleSelect from "./CrucibleSelect.js";
+  import DiceThrowInput from "./DiceThrowInput.js";
+  import PageFooter from "./PageFooter.js";
+
+  class Result {
+    constructor (adjectives, nouns, adjectiveRoll, nounRoll) {
+      this.adjectiveRoll = adjectiveRoll
+      this.nounRoll = nounRoll
+      this.adjectives = adjectives;
+      this.nouns = nouns;
+
+      this.edit = true;
+      this.value = '';
+
+      this.selectedAdjective = [...adjectives][0];
+      this.selectedNoun = [...nouns][0];
+
+    }
+
+    clone () {
+      const clone = {...this};
+      Object.setPrototypeOf(clone, Result.prototype);
+      return clone;
+    }
+
+    isSubmittable () {
+      const elements = [this.adjectives, this.nouns]
+      return elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
+    }
+
+    submit () {
+      if (this.isSubmittable()) {
+        this.edit = false
+        this.value = `${this.selectedAdjective} ${this.selectedNoun}`;
+      }
+    }
+  }
+
+  createApp({
+    components: {
+      CrucibleDataTable,
+      CrucibleResultInput,
+      DiceThrowInput,
+      CrucibleSelect,
+      PageFooter
+    },
+    setup() {
+      const results = reactive([]);
+      const adjectiveRoll = ref([]);
+      const nounRoll = ref([]);
+
+      const adjectives = new Crucible([
+        [ "Haut", "Temperatur", "eisig", "Rauch", "Regen", "Blitz" ],
+        [ "Böe", "Funken", "klapper", "Beben", "Farb", "Duft" ],
+        [ "Boden", "Feuer", "Wasser", "Licht", "Trümmer", "Flackernd" ],
+        [ "Kreaturen", "Wachstum", "Bumm", "Effect", "Stufen", "Schwebe" ],
+        [ "Wolke", "Unsichtbarkeit", "Finsternis", "Verzerrung", "Metall", "Auge" ],
+        [ "Schatten", "Uhr", "Drehung", "Gleächter", "Atem", "Summen" ]
+      ]);
+
+      const nouns = new Crucible([
+        [ "Vögel", "Flüstern", "Glühend", "Illusion", "Schnell", "Wirbelwind" ],
+        [ "Geruch", "statische Aufladung", "Hunger", "Bild", "Emotion", "Flimmern" ],
+        [ "angehoben", "Ladung", "Phrase", "Schock", "Geräusch", "Echo" ],
+        [ "zerschmetternd", "Streuung", "Gefühl", "Platzen", "flüchtig (frief)", "Schimmern" ],
+        [ "Schicht (Shift)", "Größe", "Oberfläche", "Erregung", "Erscheinung", "glitzern" ],
+        [ "Noten (Notes)", "Vision", "Stimme", "Zeichen(Mark)", "Glühen", "Blenden" ]
+      ]);
+
+      return {
+        results,
+        adjectiveRoll,
+        nounRoll,
+        adjectives,
+        nouns
+      }
+    },
+    methods: {
+      getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
+        const adjective = this.adjectives.getValue(adjectiveRoll);
+        const noun = this.nouns.getValue(nounRoll);
+
+        const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
+        result.submit();
+        return result
+      },
+      rollInputValid(roll) {
+        return roll.length === 2 && roll[0] < 7 && roll[1] < 7
+      },
+      resetInput() {
+        this.adjectiveRoll = []
+        this.nounRoll = []
+      },
+      addResult (){
+        let result;
+        if (this.rollInputValid(this.adjectiveRoll)
+          && this.rollInputValid(this.nounRoll)) {
+          result = this.getResult(this.adjectiveRoll, this.nounRoll);
+        } else {
+          result = this.getResult();
+        }
+        this.results.push(result)
+        this.resetInput();
+      },
+      submitResult(index) {
+        this.results[index].submit();
+      },
+      duplicateResult (item) {
+        const index = this.results.indexOf(item)
+        const clone = this.results[index].clone();
+        clone.edit = true;
+        this.results.splice(index + 1, 0, clone);
+      },
+      deleteResult (item) {
+        const index = this.results.indexOf(item)
+        this.results.splice(index, 1)
+      }
+    }
+  }).mount('#app')
+
+</script>
+</html>
