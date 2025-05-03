@@ -22,18 +22,19 @@
                              :delete="deleteResult">
         <template v-slot:selects="slotProps">
           <crucible-select v-model="slotProps.item.selectedAdjective"
-                           :option-items="slotProps.item.prefixes"
+                           :option-items="slotProps.item.adjectives"
                            empty-text="- Adjektiv wählen -">
           </crucible-select>
           <crucible-select v-model="slotProps.item.selectedNoun"
-                           :option-items="slotProps.item.suffixes"
+                           :option-items="slotProps.item.nouns"
                            empty-text="- Substantiv wählen -">
           </crucible-select>
         </template>
 
         <template v-slot:index="slotProps">
           <div class="col-2 py-2">
-            {{slotProps.index + 1}}: {{slotProps.item.prefixRoll.join(', ')}} x {{slotProps.item.suffixRoll.join(', ')}}
+            {{slotProps.index + 1}}: {{slotProps.item.adjectiveRoll.join(', ')}} x {{slotProps.item.nounRoll.join(
+              ', ')}}
           </div>
         </template>
 
@@ -74,10 +75,10 @@
 
   class Result {
     constructor (adjectives, nouns, adjectiveRoll, nounRoll) {
-      this.prefixRoll = adjectiveRoll
-      this.suffixRoll = nounRoll
-      this.prefixes = adjectives;
-      this.suffixes = nouns;
+      this.adjectiveRoll = adjectiveRoll
+      this.nounRoll = nounRoll
+      this.adjectives = adjectives;
+      this.nouns = nouns;
 
       this.edit = true;
       this.value = '';
@@ -94,7 +95,7 @@
     }
 
     isSubmittable () {
-      const elements = [this.natures, this.desires]
+      const elements = [this.adjectives, this.nouns]
       return elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
     }
 
@@ -164,16 +165,16 @@
 
       return {
         results,
-        prefixRoll: adjectiveRoll,
-        suffixRoll: nounRoll,
-        prefixes: adjectives,
-        suffixes: nouns
+        adjectiveRoll: adjectiveRoll,
+        nounRoll: nounRoll,
+        adjectives: adjectives,
+        nouns: nouns
       }
     },
     methods: {
       getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
-        const adjective = this.prefixes.getValue(adjectiveRoll);
-        const noun = this.suffixes.getValue(nounRoll);
+        const adjective = this.adjectives.getValue(adjectiveRoll);
+        const noun = this.nouns.getValue(nounRoll);
 
         const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
         result.submit();
@@ -183,14 +184,14 @@
         return roll.length === 2 && roll[0] < 7 && roll[1] < 7
       },
       resetInput() {
-        this.prefixRoll = []
-        this.suffixRoll = []
+        this.adjectiveRoll = []
+        this.nounRoll = []
       },
       addResult (){
         let result;
-        if (this.rollInputValid(this.prefixRoll)
-          && this.rollInputValid(this.suffixRoll)) {
-          result = this.getResult(this.prefixRoll, this.suffixRoll);
+        if (this.rollInputValid(this.adjectiveRoll)
+          && this.rollInputValid(this.nounRoll)) {
+          result = this.getResult(this.adjectiveRoll, this.nounRoll);
         } else {
           result = this.getResult();
         }
