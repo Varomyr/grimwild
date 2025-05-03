@@ -61,36 +61,12 @@
           <button type="button" class="btn btn-primary" @click="addHeritage()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
       </div>
-      <h2 class="mt-5">Abstammungs-Daten</h2>
-      <div class="row">
-        <table class="table table-hover">
-          <thead>
-          <th></th>
-          <th></th>
-          <th>1</th>
-          <th>2</th>
-          <th>3</th>
-          <th>4</th>
-          <th>5</th>
-          <th>6</th>
-          </thead>
-          <tr v-for="(row, index) in folk.data" :class="{'table-group-divider': index === 0}">
-            <th v-if="index === 0" rowspan="6" scope="rowgroup">Volk</th>
-            <th scope="row">{{index + 1}}</th>
-            <td v-for="item in row">{{item}}</td>
-          </tr>
-          <tr v-for="(row, index) in mood.data" :class="{'table-group-divider': index === 0}">
-            <th v-if="index === 0" rowspan="6" scope="row">Stimmung</th>
-            <th scope="row">{{index + 1}}</th>
-            <td v-for="item in row">{{item}}</td>
-          </tr>
-          <tr v-for="(row, index) in land.data" :class="{'table-group-divider': index === 0}">
-            <th v-if="index === 0" rowspan="6" scope="row">Land</th>
-            <th scope="row">{{index + 1}}</th>
-            <td v-for="item in row">{{item}}</td>
-          </tr>
-        </table>
-      </div>
+
+      <crucible-data-table heading="Abstammungs-Daten"
+                           :crucibles="[folk, mood, land]"
+                           :crucible-names="['Volk', 'Stimmung', 'Land']">
+      </crucible-data-table>
+
     </div>
 
   </div>
@@ -98,16 +74,11 @@
     This Tool is based on Grimwild © 2024 by J.D. Maxwell and Oddity Press, licensed under CC BY 4.0.
   </footer>
 </body>
-<script>
-  class Crucible {
-    constructor (data) {
-      this.data = data;
-    }
-
-    getValue ([x,y]) {
-      return new Set([this.data[x -1 ][y - 1], this.data[y - 1][x - 1]]);
-    }
-  }
+<script type="module">
+  import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+  import { rollDice } from "./randomDice.js";
+  import Crucible from "./Crucible.js";
+  import CrucibleDataTable from "./CrucibleDataTable.js";
 
   class Heritage {
     constructor (folks, moods, lands) {
@@ -158,24 +129,10 @@
     }
   }
 
-
-
-
-  function rollDice (diceNum) {
-    return new Array(diceNum).fill(1).map(x => randomDie());
-  }
-
-  function randomDie () {
-    return randomInt(5) + 1;
-  }
-
-  function randomInt (maxNum) {
-    return Math.round(Math.random() * maxNum);
-  }
-
-  const { createApp, ref, computed, reactive } = Vue
-
   createApp({
+    components: {
+      CrucibleDataTable
+    },
     setup() {
       const heritage = reactive([]);
       const folkRoll = ref([]);
