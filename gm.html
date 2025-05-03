@@ -21,19 +21,19 @@
                              :duplicate="duplicateResult"
                              :delete="deleteResult">
         <template v-slot:selects="slotProps">
-          <crucible-select v-model="slotProps.item.selectedAdjective"
+          <crucible-select v-model="slotProps.item.selectedNature"
                            :option-items="slotProps.item.prefixes"
                            empty-text="- Adjektiv wählen -">
           </crucible-select>
-          <crucible-select v-model="slotProps.item.selectedNoun"
-                           :option-items="slotProps.item.suffixes"
+          <crucible-select v-model="slotProps.item.selectedDesire"
+                           :option-items="slotProps.item.desires"
                            empty-text="- Substantiv wählen -">
           </crucible-select>
         </template>
 
         <template v-slot:index="slotProps">
           <div class="col-2 py-2">
-            {{slotProps.index + 1}}: {{slotProps.item.prefixRoll.join(', ')}} x {{slotProps.item.suffixRoll.join(', ')}}
+            {{slotProps.index + 1}}: {{slotProps.item.natureRoll.join(', ')}} x {{slotProps.item.desireRoll.join(', ')}}
           </div>
         </template>
 
@@ -74,16 +74,16 @@
 
   class Result {
     constructor (adjectives, nouns, adjectiveRoll, nounRoll) {
-      this.prefixRoll = adjectiveRoll
-      this.suffixRoll = nounRoll
+      this.natureRoll = adjectiveRoll
+      this.desireRoll = nounRoll
       this.prefixes = adjectives;
-      this.suffixes = nouns;
+      this.desires = nouns;
 
       this.edit = true;
       this.value = '';
 
-      this.selectedAdjective = [...adjectives][0];
-      this.selectedNoun = [...nouns][0];
+      this.selectedNature = [...adjectives][0];
+      this.selectedDesire = [...nouns][0];
 
     }
 
@@ -164,16 +164,16 @@
 
       return {
         results,
-        prefixRoll: adjectiveRoll,
-        suffixRoll: nounRoll,
+        natureRoll: adjectiveRoll,
+        desireRoll: nounRoll,
         prefixes: adjectives,
-        suffixes: nouns
+        desires: nouns
       }
     },
     methods: {
       getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
         const adjective = this.prefixes.getValue(adjectiveRoll);
-        const noun = this.suffixes.getValue(nounRoll);
+        const noun = this.desires.getValue(nounRoll);
 
         const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
         result.submit();
@@ -183,14 +183,14 @@
         return roll.length === 2 && roll[0] < 7 && roll[1] < 7
       },
       resetInput() {
-        this.prefixRoll = []
-        this.suffixRoll = []
+        this.natureRoll = []
+        this.desireRoll = []
       },
       addResult (){
         let result;
-        if (this.rollInputValid(this.prefixRoll)
-          && this.rollInputValid(this.suffixRoll)) {
-          result = this.getResult(this.prefixRoll, this.suffixRoll);
+        if (this.rollInputValid(this.natureRoll)
+          && this.rollInputValid(this.desireRoll)) {
+          result = this.getResult(this.natureRoll, this.desireRoll);
         } else {
           result = this.getResult();
         }
