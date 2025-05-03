@@ -15,22 +15,37 @@
     <div class="container">
       <h1 class="my-3">GM Crucible</h1>
       <p>Zusammensetzen und Interpretieren</p>
-      <div class="row my-1 " v-for="(result, index) in results">
-        <div class="col-2 py-2">
-          {{index + 1}}: {{result.adjectiveRoll.join(', ')}} x {{result.nounRoll.join(', ')}}
-        </div>
-        <div class="col py-2">
-          <span>{{result.value}}&nbsp;</span>
-        </div>
+      <crucible-result-input :result-items="results"
+                             :submit="submitResult"
+                             :duplicate="duplicateResult"
+                             :delete="deleteResult">
+        <template v-slot:selects="slotProps">
+          <crucible-select v-model="slotProps.item.selectedAdjective"
+                           :option-items="slotProps.item.adjectives"
+                           empty-text="- Adjektiv wählen -">
+          </crucible-select>
+          <crucible-select v-model="slotProps.item.selectedNoun"
+                           :option-items="slotProps.item.nouns"
+                           empty-text="- Substantiv wählen -">
+          </crucible-select>
+        </template>
 
-        <div class="col-3">&nbsp;
-          <button class="btn btn-secondary py-2" @click="deleteResult(index)"><i class="bi bi-trash3"></i></button>
-        </div>
+        <template v-slot:index="slotProps">
+          <div class="col-2 py-2">
+            {{slotProps.index + 1}}: {{slotProps.item.adjectiveRoll.join(', ')}} x {{slotProps.item.nounRoll.join(', ')}}
+          </div>
+        </template>
 
-      </div>
+
+      </crucible-result-input>
+
       <div class="row my-3">
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="adjectiveRoll.join(',')" @input="event => adjectiveRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Adjektiv wurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="nounRoll.join(',')" @input="event => nounRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Substantiv wurf"/></div>
+        <dice-throw-input v-model="adjectiveRoll"
+                          input-name="Adjektiv wurf">
+        </dice-throw-input>
+        <dice-throw-input v-model="nounRoll"
+                          input-name="Substantiv wurf">
+        </dice-throw-input>
         <div class="col">
           <button type="button" class="btn btn-primary" @click="addResult()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
@@ -47,27 +62,42 @@
 <script type="module">
   import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
   import { rollDice } from "./randomDice.js";
+  import Crucible from "./Crucible.js";
+
   import CrucibleDataTable from "./CrucibleDataTable.js";
+  import CrucibleResultInput from "./CrucibleResultInput.js";
+  import CrucibleSelect from "./CrucibleSelect.js";
+  import DiceThrowInput from "./DiceThrowInput.js";
   import PageFooter from "./PageFooter.js";
 
-  class Crucible {
-    constructor (data) {
-      this.data = data;
-    }
-
-    getValue ([x,y]) {
-      return this.data[x -1 ][y - 1];
-    }
-  }
-
   class Result {
-    constructor (adjective, noun, adjectiveRoll, nounRoll) {
+    constructor (adjectives, nouns, adjectiveRoll, nounRoll) {
       this.adjectiveRoll = adjectiveRoll
       this.nounRoll = nounRoll
-      this.adjective = adjective;
-      this.noun = noun;
+      this.adjectives = adjectives;
+      this.nouns = nouns;
 
-      function findSuffix() {
+      this.edit = true;
+      this.value = '';
+
+      this.selectedAdjective = [...adjectives][0];
+      this.selectedNoun = [...nouns][0];
+
+    }
+
+    clone () {
+      const clone = {...this};
+      Object.setPrototypeOf(clone, Result.prototype);
+      return clone;
+    }
+
+    isSubmittable () {
+      const elements = [this.adjectives, this.nouns]
+      return elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
+    }
+
+    submit () {
+      function findSuffix(noun) {
         if (noun.endsWith("e")
           || noun.endsWith("acht")
           || noun.endsWith("ung")
@@ -91,14 +121,19 @@
           return "er"
         }
       }
-
-      this.value = `${adjective}${findSuffix()} ${noun}`;
+      if (this.isSubmittable()) {
+        this.edit = false
+        this.value = `${this.selectedAdjective}${findSuffix(this.selectedNoun)} ${this.selectedNoun}`;
+      }
     }
   }
 
   createApp({
     components: {
       CrucibleDataTable,
+      CrucibleResultInput,
+      DiceThrowInput,
+      CrucibleSelect,
       PageFooter
     },
     setup() {
@@ -137,7 +172,9 @@
         const adjective = this.adjectives.getValue(adjectiveRoll);
         const noun = this.nouns.getValue(nounRoll);
 
-        return new Result(adjective, noun, adjectiveRoll, nounRoll)
+        const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
+        result.submit();
+        return result
       },
       rollInputValid(roll) {
         return roll.length === 2 && roll[0] < 7 && roll[1] < 7
@@ -157,7 +194,17 @@
         this.results.push(result)
         this.resetInput();
       },
-      deleteResult (index) {
+      submitResult(index) {
+        this.results[index].submit();
+      },
+      duplicateResult (item) {
+        const index = this.results.indexOf(item)
+        const clone = this.results[index].clone();
+        clone.edit = true;
+        this.results.splice(index + 1, 0, clone);
+      },
+      deleteResult (item) {
+        const index = this.results.indexOf(item)
         this.results.splice(index, 1)
       }
     }
