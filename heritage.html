@@ -15,48 +15,36 @@
     <div class="container">
       <h1 class="my-3">Abstammungs-Generator</h1>
       <p>Wähle 2 oder 3 (Volk, Laune, Land), interpretiere dann das Ergebnis</p>
-      <div class="row my-1 " v-for="(heritage, index) in heritage">
-        <div class="col-1 py-2">
-          {{index + 1}}:
-        </div>
 
-        <div v-if="heritage.edit" class="col">
-          <div class="row">
-            <div class="col">
-              <select class="form-select" v-model="heritage.selectedFolk">
-                <option v-for="folk in ['' , ...heritage.folks]" :value="folk">{{folk || '- Volk wählen -'}}</option>
-              </select>
-            </div>
-            <div class="col">
-              <select class="form-select" v-model="heritage.selectedMood">
-                <option v-for="mood in ['' , ...heritage.moods]" :value="mood">{{mood || '- Stimmung wählen -'}}</option>
-              </select>
-            </div>
-            <div class="col">
-              <select class="form-select" v-model="heritage.selectedLand">
-                <option v-for="land in ['' , ...heritage.lands]" :value="land">{{land || '- Land wählen -'}}</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div v-else class="col py-2">
-          <span>{{heritage.value}}&nbsp;</span>
-        </div>
+      <crucible-result-input :result-items="heritage"
+                              :submit="submitHeritage"
+                              :duplicate="duplicateHeritage"
+                              :delete="deleteHeritage"
+                              v-slot:selects="slotProps">
+        <crucible-select v-model="slotProps.item.selectedFolk"
+                         :option-items="slotProps.item.folks"
+                         empty-text="- Volk wählen -">
+        </crucible-select>
+        <crucible-select v-model="slotProps.item.selectedMood"
+                         :option-items="slotProps.item.moods"
+                         empty-text="- Stimmung wählen -">
+        </crucible-select>
+        <crucible-select v-model="slotProps.item.selectedLand"
+                         :option-items="slotProps.item.lands"
+                         empty-text="- Land wählen -">
+        </crucible-select>
+      </crucible-result-input>
 
-        <div class="col-3">
-          <button v-if="heritage.edit" class="btn btn-primary py-2" @click="submitHeritage(index)"><i class="bi bi-floppy"></i></button>
-          <button v-else class="btn btn-primary py-2" @click="heritage.edit=true"><i class="bi bi-pencil"></i></button>
-          &nbsp;
-          <button class="btn btn-secondary py-2" @click="duplicateHeritage(index)"><i class="bi bi-copy"></i></button>
-          &nbsp;
-          <button class="btn btn-secondary py-2" @click="deleteHeritage(index)"><i class="bi bi-trash3"></i></button>
-        </div>
-
-      </div>
       <div class="row mt-3">
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="folkRoll.join(',')" @input="event => folkRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Volkswurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="moodRoll.join(',')" @input="event => moodRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Stimmungswurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="landRoll.join(',')" @input="event => landRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Landswurf"/></div>
+        <dice-throw-input v-model="folkRoll"
+                          input-name="Volkswurf">
+        </dice-throw-input>
+        <dice-throw-input v-model="moodRoll"
+                          input-name="Stimmungswurf">
+        </dice-throw-input>
+        <dice-throw-input v-model="landRoll"
+                          input-name="Landswurf">
+        </dice-throw-input>
         <div class="col">
           <button type="button" class="btn btn-primary" @click="addHeritage()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
@@ -76,7 +64,11 @@
   import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
   import { rollDice } from "./randomDice.js";
   import Crucible from "./Crucible.js";
+
   import CrucibleDataTable from "./CrucibleDataTable.js";
+  import CrucibleSelect from "./CrucibleSelect.js";
+  import DiceThrowInput from "./DiceThrowInput.js";
+  import CrucibleResultInput from "./CrucibleResultInput.js";
   import PageFooter from "./PageFooter.js";
 
   class Heritage {
@@ -131,6 +123,9 @@
   createApp({
     components: {
       CrucibleDataTable,
+      CrucibleSelect,
+      DiceThrowInput,
+      CrucibleResultInput,
       PageFooter
     },
     setup() {
@@ -209,10 +204,12 @@
       submitHeritage(index) {
         this.heritage[index].submit();
       },
-      deleteHeritage (index) {
+      deleteHeritage (item) {
+        const index = this.heritage.indexOf(item)
         this.heritage.splice(index, 1)
       },
-      duplicateHeritage (index) {
+      duplicateHeritage (item) {
+        const index = this.heritage.indexOf(item)
         const clone = this.heritage[index].clone();
         clone.edit = true;
         this.heritage.splice(index + 1, 0, clone);

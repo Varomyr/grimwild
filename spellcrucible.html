@@ -14,55 +14,55 @@
     <div class="container">
       <h1 class="my-3">Zauberspruch Generator</h1>
       <p>Wähle 2 (Stil, Wesen, Form) und weise eine Schule zu.</p>
-      <div class="row my-1 " v-for="(spell, index) in allSpells">
-        <div class="col-1 py-2">
-          {{index + 1}}: {{spell.arcaneSpeciality ? '*' : ''}}
-        </div>
 
-        <div v-if="spell.edit" class="col">
-          <div class="row">
-            <div class="col">
-              <select class="form-select" v-model="spell.selectedStyle">
-                <option v-for="style in ['' , ...spell.styles]" :value="style">{{style || '- Stil wählen -'}}</option>
-              </select>
-            </div>
-            <div class="col">
-              <select class="form-select" v-model="spell.selectedEssence">
-                <option v-for="essence in ['' , ...spell.essences]" :value="essence">{{essence || '- Wesen wählen -'}}</option>
-              </select>
-            </div>
-            <div class="col">
-              <select class="form-select" v-model="spell.selectedForm">
-                <option v-for="form in ['' , ...spell.forms]" :value="form">{{form || '- Form wählen -'}}</option>
-              </select>
-            </div>
-            <div class="col">
-              <select class="form-select" :title="schoolDescriptions[spell.selectedSchool]" v-model="spell.selectedSchool">
-                <option v-for="school in ['' , ...spell.schools]" :title="schoolDescriptions[school]" :value="school">{{school || '- Schule wählen -'}}</option>
-              </select>
-            </div>
+      <crucible-result-input :result-items="allSpells"
+                             :submit="submitSpell"
+                             :duplicate="duplicateSpell"
+                             :delete="deleteSpell"
+                             :is-special-item="isArcaneSpeciality">
+        <template v-slot:index="slotProps">
+          <div class="col-1 py-2">
+            {{slotProps.index + 1}}: {{slotProps.item.arcaneSpeciality ? '*' : ''}}
           </div>
-        </div>
-        <div v-else class="col py-2">
-          <span>{{spell.value}}&nbsp;</span>
-          <span :title="schoolDescriptions[spell.selectedSchool]">
-            {{spell.selectedSchool}}
+        </template>
+        <template v-slot:selects="slotProps">
+          <crucible-select v-model="slotProps.item.selectedStyle"
+                           empty-text="- Stil wählen -"
+                           :option-items="slotProps.item.styles">
+          </crucible-select>
+          <crucible-select v-model="slotProps.item.selectedEssence"
+                           empty-text="- Wesen wählen -"
+                           :option-items="slotProps.item.essences">
+          </crucible-select>
+          <crucible-select v-model="slotProps.item.selectedForm"
+                           empty-text="- Form wählen -"
+                           :option-items="slotProps.item.forms">
+          </crucible-select>
+          <crucible-select v-model="slotProps.item.selectedSchool"
+                           empty-text="- Schule wählen -"
+                           :option-items="slotProps.item.schools"
+                           :titles="schoolDescriptions">
+          </crucible-select>
+        </template>
+        <template v-slot:value="slotProps">
+          <span>{{slotProps.item.value}}&nbsp;</span>
+          <span :title="schoolDescriptions[slotProps.item.selectedSchool]">
+            {{slotProps.item.selectedSchool}}
           </span>
-        </div>
+        </template>
 
-        <div v-if="!spell.arcaneSpeciality" class="col-3">
-          <button v-if="spell.edit" class="btn btn-primary py-2" @click="submitSpell(index)"><i class="bi bi-floppy"></i></button>
-          <button v-else class="btn btn-primary py-2" @click="spell.edit=true"><i class="bi bi-pencil"></i></button>
-          &nbsp;
-          <button class="btn btn-secondary py-2" @click="duplicateSpell(spell)"><i class="bi bi-copy"></i></button>
-          &nbsp;
-          <button class="btn btn-secondary py-2" @click="deleteSpell(spell)"><i class="bi bi-trash3"></i></button>
-        </div>
-      </div>
+      </crucible-result-input>
+
       <div class="row mt-3">
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="styleRoll.join(',')" @input="event => styleRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Stil wurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="essenceRoll.join(',')" @input="event => essenceRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Wesens wurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="formRoll.join(',')" @input="event => formRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Form wurf"/></div>
+        <dice-throw-input v-model="styleRoll"
+                          input-name="Stil Wurf">
+        </dice-throw-input>
+        <dice-throw-input v-model="essenceRoll"
+                          input-name="Wesen Wurf">
+        </dice-throw-input>
+        <dice-throw-input v-model="formRoll"
+                          input-name="Form Wurf">
+        </dice-throw-input>
         <div class="col">
           <button type="button" class="btn btn-primary" @click="addSpell()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
@@ -89,9 +89,12 @@
   import { createApp, ref, computed, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
   import { rollDice } from "./randomDice.js";
   import Crucible from "./Crucible.js";
-  import PageFooter from "./PageFooter.js";
 
   import CrucibeDataTable from "./CrucibleDataTable.js";
+  import CrucibleSelect from "./CrucibleSelect.js";
+  import DiceThrowInput from "./DiceThrowInput.js";
+  import CrucibleResultInput from "./CrucibleResultInput.js";
+  import PageFooter from "./PageFooter.js";
 
   class Spell {
     constructor (styles, essences, forms, schools, arcaneSpeciality) {
@@ -140,6 +143,9 @@
   createApp({
     components: {
       CrucibeDataTable,
+      CrucibleSelect,
+      DiceThrowInput,
+      CrucibleResultInput,
       PageFooter
     },
     setup() {
@@ -266,6 +272,9 @@
         const clone = this.spells[index].clone();
         clone.edit = true;
         this.spells.splice(index + 1, 0, clone);
+      },
+      isArcaneSpeciality (spell) {
+        return spell.arcaneSpeciality
       }
     }
   }).mount('#app')
