@@ -1,0 +1,229 @@
+<html>
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1 class="my-3">Abstammungs-Generator</h1>
+      <p>Wähle 2 oder 3 (Volk, Laune, Land), interpretiere dann das Ergebnis</p>
+      <div class="row my-1 " v-for="(heritage, index) in heritage">
+        <div class="col-1 py-2">
+          {{index + 1}}:
+        </div>
+
+        <div v-if="heritage.edit" class="col">
+          <div class="row">
+            <div class="col">
+              <select class="form-select" v-model="heritage.selectedFolk">
+                <option v-for="folk in ['' , ...heritage.folks]" :value="folk">{{folk || '- Volk wählen -'}}</option>
+              </select>
+            </div>
+            <div class="col">
+              <select class="form-select" v-model="heritage.selectedMood">
+                <option v-for="mood in ['' , ...heritage.moods]" :value="mood">{{mood || '- Laune wählen -'}}</option>
+              </select>
+            </div>
+            <div class="col">
+              <select class="form-select" v-model="heritage.selectedLand">
+                <option v-for="land in ['' , ...heritage.lands]" :value="land">{{land || '- Land wählen -'}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div v-else class="col py-2">
+          <span>{{heritage.value}}&nbsp;</span>
+        </div>
+
+        <div class="col-3">
+          <button v-if="heritage.edit" class="btn btn-primary py-2" @click="submitHeritage(index)"><i class="bi bi-floppy"></i></button>
+          <button v-else class="btn btn-primary py-2" @click="heritage.edit=true"><i class="bi bi-pencil"></i></button>
+          &nbsp;
+          <button class="btn btn-secondary py-2" @click="duplicateHeritage(index)"><i class="bi bi-copy"></i></button>
+          &nbsp;
+          <button class="btn btn-secondary py-2" @click="deleteHeritage(index)"><i class="bi bi-trash3"></i></button>
+        </div>
+
+      </div>
+      <div class="row mt-3">
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="folkRoll.join(',')" @input="event => folkRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Volk wurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="moodRoll.join(',')" @input="event => moodRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Laune wurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="landRoll.join(',')" @input="event => landRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Land wurf"/></div>
+        <div class="col">
+          <button type="button" class="btn btn-primary" @click="addHeritage()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+<script>
+  class Crucible {
+    constructor (data) {
+      this.data = data;
+    }
+
+    getValue ([x,y]) {
+      return new Set([this.data[x -1 ][y - 1], this.data[y - 1][x - 1]]);
+    }
+  }
+
+  const folk = new Crucible([
+    [ "Landstreicher", "Vogelvolk", "Reisende", "Goblins", "Insulaner", "Fischer" ],
+    [ "Reiter", "Clans", "Seeleute", "Stämme", "Hüter", "Siedler" ],
+    [ "Gnome", "Pilger", "Schildkrötenvolk", "Bürger", "Plünderer", "Schnitzer" ],
+    [ "Zwerge", "Tieflinge", "Goliaths", "Dragenborn", "Handwerker", "Talbewohner" ],
+    [ "Nomaden", "Stadtvolk", "Menschen", "Halblinge", "Händler", "Himmelsbeobachter" ],
+    [ "Elfen", "Orks", "Waldvolk", "Höhlenvolk", "Räuber", "Ausgestoßene" ]
+  ]);
+
+  const mood = new Crucible([
+    [ "gewundenen", "stählernen", "grünen", "goldenen", "Smaragd", "brennenden" ],
+    [ "üppigen", "schwebenden", "karminroten", "zersplitterten", "spukenden", "verwunschenen" ],
+    [ "verbrannten", "widerhallenden", "nebligen", "schimmernden", "entfernten", "stillen" ],
+    [ "rollenden", "reichlichen", "großartigen", "versunkenen", "küstennahen", "düsteren" ],
+    [ "abgründigen", "trostlosen", "felsigen", "windgepeitschten", "heulenden", "ewigen" ],
+    [ "verwilderten", "heiteren", "flüsternden", "grimmingen", "wohlhabenden", "rohelosen" ]
+  ]);
+
+  const land = new Crucible([
+    [ "Gipfel", "Konföderation", "Fjorde", "Küste", "Ödlands", "Moorlands" ],
+    [ "Königreichs", "Wildnis", "Sumpfs", "Inseln", "Dickichts", "Dschungelstadt" ],
+    [ "Wüste", "Schluchten", "Hochlands", "Grotten", "Fenlands", "Grenzlands" ],
+    [ "Ebenen", "Nordens", "Moore", "Ruinen", "Senken", "Unterwelt" ],
+    [ "Meers", "Wiesen", "Ausenposten", "Klippen", "Boomstadt", "Flusslands" ],
+    [ "Gletscher", "Sande", "Ödlands", "Koalition", "Brandlands", "Heine" ]
+  ]);
+
+
+  class Heritage {
+    constructor (folks, moods, lands) {
+      this.folks = folks;
+      this.moods = moods;
+      this.lands = lands;
+
+      this.edit = true;
+      this.value = '';
+
+      this.selectedFolk = [...folks][0];
+      this.selectedMood = [...moods][0];
+      this.selectedLand = [...lands][0];
+    }
+
+    clone () {
+      const clone = {...this};
+      Object.setPrototypeOf(clone, Heritage.prototype);
+      return clone;
+    }
+
+    isSubmittable () {
+      const elements = [this.selectedFolk, this.selectedMood, this.selectedLand]
+      return elements.reduce((sum, curr) => sum + !!curr, 0) >= 2;
+    }
+
+    submit () {
+      function createBindingPhrase (word) {
+        if (word.endsWith("en")
+          || word.endsWith("ln")
+          || word.endsWith("el")
+          || word.endsWith("ion")
+          || word.endsWith("e")
+          || word.endsWith("er")
+          || word.endsWith("is")
+          || word.endsWith("lt")
+          || word.endsWith("dt")) {
+          return " der "
+        }
+
+        return " des "
+      }
+      const elements = [this.selectedMood, this.selectedLand]
+      if (this.isSubmittable()) {
+        this.edit = false
+        this.value = (this.selectedFolk ? `${this.selectedFolk}${createBindingPhrase(this.selectedLand)}` : '') + elements.join(' ')
+      }
+    }
+  }
+
+
+
+
+  function rollDice (diceNum) {
+    return new Array(diceNum).fill(1).map(x => randomDie());
+  }
+
+  function randomDie () {
+    return randomInt(5) + 1;
+  }
+
+  function randomInt (maxNum) {
+    return Math.round(Math.random() * maxNum);
+  }
+
+  const { createApp, ref, computed, reactive } = Vue
+
+  createApp({
+    setup() {
+      const heritage = reactive([]);
+      const folkRoll = ref([]);
+      const moodRoll = ref([]);
+      const landRoll = ref([]);
+
+      return {
+        heritage,
+        folkRoll: folkRoll,
+        moodRoll: moodRoll,
+        landRoll: landRoll
+      }
+    },
+    methods: {
+      getHeritage (styleRoll, essenceRoll, formRoll) {
+        const folks = folk.getValue(styleRoll || rollDice(2));
+        const moods = mood.getValue(essenceRoll || rollDice(2));
+        const lands = land.getValue(formRoll || rollDice(2));
+
+        const heritage = new Heritage(folks, moods, lands)
+        heritage.submit()
+        return heritage
+      },
+      rollInputValid(roll) {
+        return roll.length === 2 && roll[0] < 7 && roll[1] < 7
+      },
+      resetInput() {
+        this.folkRoll = []
+        this.moodRoll = []
+        this.landRoll = []
+      },
+      addHeritage (){
+        let heritage;
+        if (this.rollInputValid(this.folkRoll)
+          && this.rollInputValid(this.moodRoll)
+          &&  this.rollInputValid(this.landRoll)) {
+          heritage = this.getHeritage(this.folkRoll, this.moodRoll, this.landRoll);
+        } else {
+          heritage = this.getHeritage();
+        }
+        this.heritage.push(heritage)
+        this.resetInput();
+      },
+      submitHeritage(index) {
+        this.heritage[index].submit();
+      },
+      deleteHeritage (index) {
+        this.heritage.splice(index, 1)
+      },
+      duplicateHeritage (index) {
+        const clone = this.heritage[index].clone();
+        clone.edit = true;
+        this.heritage.splice(index + 1, 0, clone);
+      }
+    }
+  }).mount('#app')
+
+</script>
+</html>

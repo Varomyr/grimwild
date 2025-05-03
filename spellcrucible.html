@@ -1,0 +1,284 @@
+<html>
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1 class="my-3">Zauberspruch Generator</h1>
+      <p>Wähle 2 (Stil, Wesen, Form) und weise eine Schule zu.</p>
+      <div class="row my-1 " v-for="(spell, index) in allSpells">
+        <div class="col-1 py-2">
+          {{index + 1}}: {{spell.arcaneSpeciality ? '*' : ''}}
+        </div>
+
+        <div v-if="spell.edit" class="col">
+          <div class="row">
+            <div class="col">
+              <select class="form-select" v-model="spell.selectedStyle">
+                <option v-for="style in ['' , ...spell.styles]" :value="style">{{style || '- Stil wählen -'}}</option>
+              </select>
+            </div>
+            <div class="col">
+              <select class="form-select" v-model="spell.selectedEssence">
+                <option v-for="essence in ['' , ...spell.essences]" :value="essence">{{essence || '- Wesen wählen -'}}</option>
+              </select>
+            </div>
+            <div class="col">
+              <select class="form-select" v-model="spell.selectedForm">
+                <option v-for="form in ['' , ...spell.forms]" :value="form">{{form || '- Form wählen -'}}</option>
+              </select>
+            </div>
+            <div class="col">
+              <select class="form-select" :title="schoolDescriptions[spell.selectedSchool]" v-model="spell.selectedSchool">
+                <option v-for="school in ['' , ...spell.schools]" :title="schoolDescriptions[school]" :value="school">{{school || '- Schule wählen -'}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div v-else class="col py-2">
+          <span>{{spell.value}}&nbsp;</span>
+          <span :title="schoolDescriptions[spell.selectedSchool]">
+            {{spell.selectedSchool}}
+          </span>
+        </div>
+
+        <div v-if="!spell.arcaneSpeciality" class="col-3">
+          <button v-if="spell.edit" class="btn btn-primary py-2" @click="submitSpell(index)"><i class="bi bi-floppy"></i></button>
+          <button v-else class="btn btn-primary py-2" @click="spell.edit=true"><i class="bi bi-pencil"></i></button>
+          &nbsp;
+          <button class="btn btn-secondary py-2" @click="duplicateSpell(spell)"><i class="bi bi-copy"></i></button>
+          &nbsp;
+          <button class="btn btn-secondary py-2" @click="deleteSpell(spell)"><i class="bi bi-trash3"></i></button>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="styleRoll.join(',')" @input="event => styleRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Stil wurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="essenceRoll.join(',')" @input="event => essenceRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Wesens wurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="formRoll.join(',')" @input="event => formRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Form wurf"/></div>
+        <div class="col">
+          <button type="button" class="btn btn-primary" @click="addSpell()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
+        </div>
+      </div>
+      <h2 class="mt-3">*Arcane Spezialität</h2>
+      <p>Falls du das Talent "Arcane Spezialität besitzt, wähle deine Spezialitäten Schule.</p>
+      <div class="row">
+        <div class="col">
+          <select class="form-select" :title="schoolDescriptions[specialitySchool]" v-model="specialitySchool">
+            <option v-for="school in ['', ...magicSchools]" :title="schoolDescriptions[school]" :value="school">{{school || "Nicht vorhanden"}}</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+
+</body>
+<script>
+  class Crucible {
+    constructor (data) {
+      this.data = data;
+    }
+
+    getValue ([x,y]) {
+      return new Set([this.data[x -1 ][y - 1], this.data[y - 1][x - 1]]);
+    }
+  }
+
+  const style = new Crucible([
+    [ "bindend", "triefend", "schimmernd", "abschiermend", "neugierig", "schattenhaft" ],
+    [ "flammend", "langsam", "zornig", "versteinernd", "hungrig", "majestätisch" ],
+    [ "charmant", "lautlos", "schillernd", "durchbohrend", "gemütlich", "rasend" ],
+    [ "kryptisch", "verdorrend", "ursprünglich", "schreiend", "donnernd", "prismatisch" ],
+    [ "gefrierend", "sickernd", "grimmig", "habgierig", "giftig", "widerlich" ],
+    [ "hypnotisierend", "unsichtbar", "ausweitend", "schnell", "fiktiv", "schrecklich" ]
+  ]);
+
+  const essence = new Crucible([
+    [ "Öl", "Erde", "Überlieferung", "Blitz", "Asche", "Dorne" ],
+    [ "Kristall", "Luft", "Feuer", "Geist", "Säure", "Rebe" ],
+    [ "Schleim", "Pilz", "Tod", "Stase", "Klang", "Wasser" ],
+    [ "Licht", "Hex", "Brand(Blight)", "Schrecken (Terror)", "Verstand", "Zugluft (draught)" ],
+    [ "Verhängnis", "Rauch", "Sicht (Sight)", "Nebel", "Ungeziefer", "Holz" ],
+    [ "Schmerz", "Energie", "Gefühl (Feeling)", "Knochen", "Fleisch", "Wurm" ]
+  ]);
+
+  const form = new Crucible([
+    [ "Leuchtfeuer", "Diener", "Sicht", "Wächter", "Strahl", "Gift" ],
+    [ "Ring", "Krone", "Scheibe", "Netz", "Guide", "Glut" ],
+    [ "Ketten", "Wort", "Reißzahn", "Tor", "Wand", "Dunkelheit" ],
+    [ "Auge", "Aura", "Böe", "Flüstern", "Flügel", "Welle" ],
+    [ "Kaskade", "Schild", "Schwarm", "Säule", "Klaue", "Traum" ],
+    [ "Blase", "Hand", "Tanz", "Explosion", "Maske", "Fäulnis" ]
+  ]);
+
+
+  class Spell {
+    constructor (styles, essences, forms, schools, arcaneSpeciality) {
+      this.styles = styles;
+      this.essences = essences;
+      this.forms = forms;
+      this.schools = schools;
+
+      this.edit = true;
+      this.value = '';
+      this.arcaneSpeciality = arcaneSpeciality || false
+
+      this.selectedStyle = '';
+      this.selectedEssence = '';
+      this.selectedForm = '';
+      this.selectedSchool = '';
+    }
+
+    clone () {
+      const clone = {...this};
+      Object.setPrototypeOf(clone, Spell.prototype);
+      return clone;
+    }
+
+    isSubmittable () {
+      const elements = [this.selectedStyle, this.selectedEssence, this.selectedForm]
+      const twoElementsSelected = elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
+      const schoolSelected = !!this.selectedSchool;
+      return twoElementsSelected && schoolSelected
+    }
+
+    submit () {
+      console.log(this)
+      const elements = [this.selectedStyle, this.selectedEssence, this.selectedForm]
+      if (this.isSubmittable()) {
+        this.edit = false
+        this.value = elements.filter(x => !!x).join(" ");
+      }
+    }
+
+    toString () {
+      return `styles: ${[...this.styles].join(', ')}, essences: ${[...this.essences].join(', ') }, forms: ${[...this.forms].join(', ')}, schools: ${this.schools.join(', ')}`;
+    }
+  }
+
+
+
+
+  function rollDice (diceNum) {
+    return new Array(diceNum).fill(1).map(x => randomDie());
+  }
+
+  function randomDie () {
+    return randomInt(5) + 1;
+  }
+
+  function randomInt (maxNum) {
+    return Math.round(Math.random() * maxNum);
+  }
+
+  const { createApp, ref, computed, reactive } = Vue
+
+  createApp({
+    setup() {
+      const spells = reactive([]);
+      const specialitySchool = ref('');
+      const styleRoll = ref([]);
+      const essenceRoll = ref([]);
+      const formRoll = ref([]);
+      const allSpells = computed(() => {
+        if (specialitySchool.value === '') {
+          return spells
+        }
+        const newSpells = []
+        spells.forEach((spell) => {
+          newSpells.push(spell);
+          if(spell.isSubmittable() && spell.selectedSchool !== specialitySchool.value) {
+            const clone = spell.clone();
+            clone.selectedSchool = specialitySchool.value;
+            clone.arcaneSpeciality = true;
+            if (clone.edit) { clone.submit() }
+            newSpells.push(clone)
+          }
+        })
+        return newSpells;
+      })
+      const schoolDescriptions = ref({
+        "Abjuration": "Schützt, blockt, vertreibt oder bannt.",
+        "Conjuration": "Beschwört Kreaturen, Gegenstände und teleportiert.",
+        "Divination": "Enthüllt Informationen, sagt die Zukunft voraus und liest Gedanken.",
+        "Enchantment": "Verzaubert, beeinflusst und verflucht empfindungsfähige Kreaturen.",
+        "Evocation": "Erzeugt und kontrolliert elementare und magische Kräfte.",
+        "Illusion": "Erzeugt falsche Bilder und Sinnestäuschungen.",
+        "Nekromantie": "Beeinflusst Leben, Tod und Untote.",
+        "Transmutation": "Verwandelt Materie und verändert die physikalischen Eigenschaften."
+      })
+      const magicSchools = ref([
+        "Abjuration",
+        "Conjuration",
+        "Divination",
+        "Enchantment",
+        "Evocation",
+        "Illusion",
+        "Nekromantie",
+        "Transmutation"
+      ]);
+
+      return {
+        spells,
+        schoolDescriptions,
+        magicSchools,
+        specialitySchool,
+        allSpells,
+        styleRoll,
+        essenceRoll,
+        formRoll
+      }
+    },
+    methods: {
+      getSpell (styleRoll, essenceRoll, formRoll) {
+        const styles = style.getValue(styleRoll || rollDice(2));
+        const essences = essence.getValue(essenceRoll || rollDice(2));
+        const forms = form.getValue(formRoll || rollDice(2));
+
+        return new Spell(styles, essences, forms, this.magicSchools)
+      },
+      rollInputValid(roll) {
+        return roll.length === 2 && roll[0] < 7 && roll[1] < 7
+      },
+      resetInput() {
+        this.styleRoll = []
+        this.essenceRoll = []
+        this.formRoll = []
+      },
+      addSpell (){
+        let spell;
+        if (this.rollInputValid(this.styleRoll)
+          && this.rollInputValid(this.essenceRoll)
+          &&  this.rollInputValid(this.formRoll)) {
+          spell = this.getSpell(this.styleRoll, this.essenceRoll, this.formRoll);
+        } else {
+          spell = this.getSpell();
+        }
+        this.spells.push(spell)
+        this.resetInput();
+      },
+      submitSpell(index) {
+        this.allSpells[index].submit();
+      },
+      deleteSpell (spell) {
+        const index = this.spells.indexOf(spell)
+        this.spells.splice(index, 1)
+      },
+      duplicateSpell (spell) {
+        const index = this.spells.indexOf(spell)
+        const clone = this.spells[index].clone();
+        clone.edit = true;
+        this.spells.splice(index + 1, 0, clone);
+      }
+    }
+  }).mount('#app')
+
+</script>
+</html>
