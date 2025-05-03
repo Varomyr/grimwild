@@ -280,9 +280,9 @@
     },
     methods: {
       getSpell (styleRoll, essenceRoll, formRoll) {
-        const styles = style.getValue(styleRoll || rollDice(2));
-        const essences = essence.getValue(essenceRoll || rollDice(2));
-        const forms = form.getValue(formRoll || rollDice(2));
+        const styles = this.style.getValue(styleRoll || rollDice(2));
+        const essences = this.essence.getValue(essenceRoll || rollDice(2));
+        const forms = this.form.getValue(formRoll || rollDice(2));
 
         return new Spell(styles, essences, forms, this.magicSchools)
       },
