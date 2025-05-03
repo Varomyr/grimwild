@@ -29,7 +29,7 @@
             </div>
             <div class="col">
               <select class="form-select" v-model="heritage.selectedMood">
-                <option v-for="mood in ['' , ...heritage.moods]" :value="mood">{{mood || '- Laune wählen -'}}</option>
+                <option v-for="mood in ['' , ...heritage.moods]" :value="mood">{{mood || '- Stimmung wählen -'}}</option>
               </select>
             </div>
             <div class="col">
@@ -54,15 +54,45 @@
 
       </div>
       <div class="row mt-3">
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="folkRoll.join(',')" @input="event => folkRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Volk wurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="moodRoll.join(',')" @input="event => moodRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Laune wurf"/></div>
-        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="landRoll.join(',')" @input="event => landRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Land wurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="folkRoll.join(',')" @input="event => folkRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Volkswurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="moodRoll.join(',')" @input="event => moodRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Stimmungswurf"/></div>
+        <div class="col"><input class="form-control" maxlength="3" minlength="3" type="text" :value="landRoll.join(',')" @input="event => landRoll = event.target.value.split('').map(c => parseInt(c, 10)).filter(c => !isNaN(c))"  placeholder="Landswurf"/></div>
         <div class="col">
           <button type="button" class="btn btn-primary" @click="addHeritage()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
         </div>
       </div>
-
+      <h2 class="mt-5">Abstammungs-Daten</h2>
+      <div class="row">
+        <table class="table table-hover">
+          <thead>
+          <th></th>
+          <th></th>
+          <th>1</th>
+          <th>2</th>
+          <th>3</th>
+          <th>4</th>
+          <th>5</th>
+          <th>6</th>
+          </thead>
+          <tr v-for="(row, index) in folk.data" :class="{'table-group-divider': index === 0}">
+            <th v-if="index === 0" rowspan="6" scope="rowgroup">Volk</th>
+            <th scope="row">{{index + 1}}</th>
+            <td v-for="item in row">{{item}}</td>
+          </tr>
+          <tr v-for="(row, index) in mood.data" :class="{'table-group-divider': index === 0}">
+            <th v-if="index === 0" rowspan="6" scope="row">Stimmung</th>
+            <th scope="row">{{index + 1}}</th>
+            <td v-for="item in row">{{item}}</td>
+          </tr>
+          <tr v-for="(row, index) in land.data" :class="{'table-group-divider': index === 0}">
+            <th v-if="index === 0" rowspan="6" scope="row">Land</th>
+            <th scope="row">{{index + 1}}</th>
+            <td v-for="item in row">{{item}}</td>
+          </tr>
+        </table>
+      </div>
     </div>
+
   </div>
   <footer class=" my-3 text-center">
     This Tool is based on Grimwild © 2024 by J.D. Maxwell and Oddity Press, licensed under CC BY 4.0.
@@ -78,34 +108,6 @@
       return new Set([this.data[x -1 ][y - 1], this.data[y - 1][x - 1]]);
     }
   }
-
-  const folk = new Crucible([
-    [ "Landstreicher", "Vogelvolk", "Reisende", "Goblins", "Insulaner", "Fischer" ],
-    [ "Reiter", "Clans", "Seeleute", "Stämme", "Hüter", "Siedler" ],
-    [ "Gnome", "Pilger", "Schildkrötenvolk", "Bürger", "Plünderer", "Schnitzer" ],
-    [ "Zwerge", "Tieflinge", "Goliaths", "Dragenborn", "Handwerker", "Talbewohner" ],
-    [ "Nomaden", "Stadtvolk", "Menschen", "Halblinge", "Händler", "Himmelsbeobachter" ],
-    [ "Elfen", "Orks", "Waldvolk", "Höhlenvolk", "Räuber", "Ausgestoßene" ]
-  ]);
-
-  const mood = new Crucible([
-    [ "gewundenen", "stählernen", "grünen", "goldenen", "Smaragd", "brennenden" ],
-    [ "üppigen", "schwebenden", "karminroten", "zersplitterten", "spukenden", "verwunschenen" ],
-    [ "verbrannten", "widerhallenden", "nebligen", "schimmernden", "entfernten", "stillen" ],
-    [ "rollenden", "reichlichen", "großartigen", "versunkenen", "küstennahen", "düsteren" ],
-    [ "abgründigen", "trostlosen", "felsigen", "windgepeitschten", "heulenden", "ewigen" ],
-    [ "verwilderten", "heiteren", "flüsternden", "grimmingen", "wohlhabenden", "rohelosen" ]
-  ]);
-
-  const land = new Crucible([
-    [ "Gipfel", "Konföderation", "Fjorde", "Küste", "Ödlands", "Moorlands" ],
-    [ "Königreichs", "Wildnis", "Sumpfs", "Inseln", "Dickichts", "Dschungelstadt" ],
-    [ "Wüste", "Schluchten", "Hochlands", "Grotten", "Fenlands", "Grenzlands" ],
-    [ "Ebenen", "Nordens", "Moore", "Ruinen", "Senken", "Unterwelt" ],
-    [ "Meers", "Wiesen", "Ausenposten", "Klippen", "Boomstadt", "Flusslands" ],
-    [ "Gletscher", "Sande", "Ödlands", "Koalition", "Brandlands", "Heine" ]
-  ]);
-
 
   class Heritage {
     constructor (folks, moods, lands) {
@@ -180,18 +182,48 @@
       const moodRoll = ref([]);
       const landRoll = ref([]);
 
+      const folk = new Crucible([
+        [ "Landstreicher", "Vogelvolk", "Reisende", "Goblins", "Insulaner", "Fischer" ],
+        [ "Reiter", "Clans", "Seeleute", "Stämme", "Hüter", "Siedler" ],
+        [ "Gnome", "Pilger", "Schildkrötenvolk", "Bürger", "Plünderer", "Schnitzer" ],
+        [ "Zwerge", "Tieflinge", "Goliaths", "Dragenborn", "Handwerker", "Talbewohner" ],
+        [ "Nomaden", "Stadtvolk", "Menschen", "Halblinge", "Händler", "Himmelsbeobachter" ],
+        [ "Elfen", "Orks", "Waldvolk", "Höhlenvolk", "Räuber", "Ausgestoßene" ]
+      ]);
+
+      const mood = new Crucible([
+        [ "gewundenen", "stählernen", "grünen", "goldenen", "Smaragd", "brennenden" ],
+        [ "üppigen", "schwebenden", "karminroten", "zersplitterten", "spukenden", "verwunschenen" ],
+        [ "verbrannten", "widerhallenden", "nebligen", "schimmernden", "entfernten", "stillen" ],
+        [ "rollenden", "reichlichen", "großartigen", "versunkenen", "küstennahen", "düsteren" ],
+        [ "abgründigen", "trostlosen", "felsigen", "windgepeitschten", "heulenden", "ewigen" ],
+        [ "verwilderten", "heiteren", "flüsternden", "grimmingen", "wohlhabenden", "rohelosen" ]
+      ]);
+
+      const land = new Crucible([
+        [ "Gipfel", "Konföderation", "Fjorde", "Küste", "Ödlands", "Moorlands" ],
+        [ "Königreichs", "Wildnis", "Sumpfs", "Inseln", "Dickichts", "Dschungelstadt" ],
+        [ "Wüste", "Schluchten", "Hochlands", "Grotten", "Fenlands", "Grenzlands" ],
+        [ "Ebenen", "Nordens", "Moore", "Ruinen", "Senken", "Unterwelt" ],
+        [ "Meers", "Wiesen", "Ausenposten", "Klippen", "Boomstadt", "Flusslands" ],
+        [ "Gletscher", "Sande", "Ödlands", "Koalition", "Brandlands", "Heine" ]
+      ]);
+
       return {
         heritage,
-        folkRoll: folkRoll,
-        moodRoll: moodRoll,
-        landRoll: landRoll
+        folkRoll,
+        moodRoll,
+        landRoll,
+        folk,
+        mood,
+        land
       }
     },
     methods: {
       getHeritage (styleRoll, essenceRoll, formRoll) {
-        const folks = folk.getValue(styleRoll || rollDice(2));
-        const moods = mood.getValue(essenceRoll || rollDice(2));
-        const lands = land.getValue(formRoll || rollDice(2));
+        const folks = this.folk.getValue(styleRoll || rollDice(2));
+        const moods = this.mood.getValue(essenceRoll || rollDice(2));
+        const lands = this.land.getValue(formRoll || rollDice(2));
 
         const heritage = new Heritage(folks, moods, lands)
         heritage.submit()
