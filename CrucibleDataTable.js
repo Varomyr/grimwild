@@ -18,12 +18,7 @@ export default {
             <tr>
               <th></th>
               <th></th>
-              <th>1</th>
-              <th>2</th>
-              <th>3</th>
-              <th>4</th>
-              <th>5</th>
-              <th>6</th>
+              <th v-for="(entry, index) in crucibles[0].data[0]">{{index + 1}}</th>
             </tr>
          
           </thead>

@@ -7,7 +7,7 @@ export default {
     CrucibleResultInput,
     DiceThrowInput
   },
-  props: ['heading', 'description', 'rollNames', 'getResult', 'modelValue', 'displayModifier'],
+  props: ['heading', 'description', 'rollNames', 'getResult', 'modelValue', 'displayModifier', 'rollValidator'],
   setup(props) {
     const rolls = ref(new Array(props.rollNames.length).fill([]))
     const results = computed(() => {
@@ -42,7 +42,8 @@ export default {
     },
     addResult() {
       let result;
-      if (this.rolls.every(this.rollInputValid)) {
+      const validator = this.props.rollValidator ? this.props.rollValidator : this.rollInputValid
+      if (this.rolls.every(validator)) {
         result = this.props.getResult (this.rolls)
       } else {
         result = this.props.getResult()

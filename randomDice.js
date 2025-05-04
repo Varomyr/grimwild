@@ -2,8 +2,8 @@ function rollDice (diceNum) {
   return new Array(diceNum).fill(1).map(x => randomDie());
 }
 
-function randomDie () {
-  return randomInt(5) + 1;
+function randomDie (max = 6) {
+  return randomInt(max - 1) + 1;
 }
 
 function randomInt (maxNum) {

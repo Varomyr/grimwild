@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html  lang="de">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <meta charset="UTF-8">
+  <title>Grimwild - GM Crucible</title>
+
+</head>
+<body>
+  <div id="app">
+    <page-nav-bar></page-nav-bar>
+    <div class="container">
+      <crucible-object-generator heading="Bardsong Generator"
+                                 description="Roll(1, 1-10) and accept or edit"
+                                 :roll-names="labels"
+                                 :get-result="getResult"
+                                 :model-value="results"
+                                 :roll-validator="rollInputValid">
+      </crucible-object-generator>
+
+      <crucible-data-table heading="GM Crucible Daten"
+                           :crucibles="[styles, tunes, impacts]"
+                           :crucible-names="labels">
+      </crucible-data-table>
+    </div>
+    <page-footer></page-footer>
+  </div>
+</body>
+<script type="module">
+  import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+  import { initRolls } from "./utils.js";
+  import Crucible from "./Crucible.js";
+  import CrucibleResult from "./CrucibleResult.js";
+
+  import CrucibleDataTable from "./CrucibleDataTable.js";
+  import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
+  import PageNavBar from "./PageNavBar.js";
+  import PageFooter from "./PageFooter.js";
+  import { randomDie } from "./randomDice.js";
+
+  createApp({
+    components: {
+      CrucibleDataTable,
+      CrucibleObjectGenerator,
+      PageNavBar,
+      PageFooter
+    },
+    setup() {
+      const results = ref([]);
+      const labels = ref(['Stil', 'Lied', 'Auswirkung'])
+
+      const styles = new Crucible([
+        [ "chaotisch", "grässlich", "feurig", "sanft", "eindringlich", "spielerisch", "nostalgisch", "mitreißend", "bösartig", "skuril"]
+      ]);
+
+      const tunes = new Crucible([
+        [ "Hymne", "Arie", "Ballade", "Chant", "Liedchen (ditty)", "Hymnus", "Ode", "Requiem", "Rapsodie", "Serenade"]
+      ]);
+
+      const impacts = new Crucible([
+        ["Zuneigung", "Ehrfurcht", "Ruhe", "Verzweiflung", "Angst", "Wut", "Hoffnung", "Freude", "Spotts", "Staunens"]
+      ])
+
+      return {
+        results,
+        labels,
+        styles,
+        tunes,
+        impacts
+      }
+    },
+    methods: {
+      rollInputValid (roll) {
+        return roll.length = 2 && roll[0] === 1  && roll[1] <= 10 ;
+      },
+      getResult (rolls) {
+        const [styleRoll, tuneRoll, impactRoll] = initRolls(rolls, 3, () => { return [1, randomDie(10)]})
+        const style = this.styles.getValue(styleRoll);
+        const tune = this.tunes.getValue(tuneRoll);
+        const impact = this.impacts.getValue(impactRoll);
+
+        const data = [this.styles.data[0], this.tunes.data[0], this.impacts.data[0]]
+        const options = {
+          valueFormatter ([style, tune, impact]) {
+            function findSuffix(noun) {
+              if (noun.endsWith("e")
+                || noun.endsWith("acht")
+                || noun.endsWith("ung")
+                || noun.endsWith("on")
+                || noun.endsWith("Wand")
+                || noun.endsWith("mer")){
+                return "e"
+              }
+              if (noun.endsWith("en")
+                || noun.endsWith("ht")
+                || noun.endsWith("land")
+                || noun.endsWith("v")
+                || noun.endsWith("th")
+                || noun.endsWith("ma")
+                || noun.endsWith("m")
+                || noun.endsWith("uer")
+                || noun.endsWith("ol")){
+                return "es"
+              } else {
+                return "er"
+              }
+            }
+            return [`${style}${findSuffix(tune)}`, tune, `d${impact.endsWith('s') ? 'es': 'er'} ${impact}`];
+          }
+        }
+        const usedRolls = [styleRoll, tuneRoll, impactRoll];
+        const selectedValues = [style, tune, impact]
+
+        const result = new CrucibleResult(data, this.labels, [], options, usedRolls, selectedValues, )
+        result.submit();
+        return result
+      }
+    }
+  }).mount('#app')
+
+</script>
+</html>
