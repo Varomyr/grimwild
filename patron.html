@@ -31,7 +31,7 @@
 </body>
 <script type="module">
   import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-  import { rollDice } from "./randomDice.js";
+  import { initRolls } from "./utils.js";
   import Crucible from "./Crucible.js";
   import CrucibleResult from "./CrucibleResult.js";
 
@@ -39,7 +39,6 @@
   import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
   import PageNavBar from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
-  import { initRolls } from "./utils";
 
   createApp({
     components: {
