@@ -14,39 +14,15 @@
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <h1 class="my-3">Kräuterkunde Crucible</h1>
-      <crucible-result-input :result-items="results"
-                             :submit="submitResult"
-                             :duplicate="duplicateResult"
-                             :delete="deleteResult">
-        <template v-slot:selects="slotProps">
-          <crucible-select v-model="slotProps.item.selectedPrefix"
-                           :option-items="slotProps.item.prefixes"
-                           empty-text="- Prefix wählen -">
-          </crucible-select>
-          <crucible-select v-model="slotProps.item.selectedSuffix"
-                           :option-items="slotProps.item.suffixes"
-                           empty-text="- Suffix wählen -">
-          </crucible-select>
-        </template>
-
-      </crucible-result-input>
-
-      <div class="row my-3">
-        <dice-throw-input v-model="prefixRoll"
-                          input-name="Prefix Wurf">
-        </dice-throw-input>
-        <dice-throw-input v-model="suffixRoll"
-                          input-name="Suffix Wurf">
-        </dice-throw-input>
-        <div class="col">
-          <button type="button" class="btn btn-primary" @click="addResult()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
-        </div>
-      </div>
+      <crucible-object-generator heading="Kräuterkunde Generator"
+                                 :roll-names="labels"
+                                 :get-result="getResult"
+                                 :model-value="results">
+      </crucible-object-generator>
 
       <crucible-data-table heading="Kräuterkunde Crucible Daten"
                            :crucibles="[prefixes, suffixes]"
-                           :crucible-names="['Prefix', 'Suffix']">
+                           :crucible-names="labels">
       </crucible-data-table>
     </div>
     <page-footer></page-footer>
@@ -54,63 +30,25 @@
 </body>
 <script type="module">
   import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-  import { rollDice } from "./randomDice.js";
+  import { initRolls } from "./utils.js";
   import Crucible from "./Crucible.js";
+  import CrucibleResult from "./CrucibleResult.js";
 
   import CrucibleDataTable from "./CrucibleDataTable.js";
-  import CrucibleResultInput from "./CrucibleResultInput.js";
-  import CrucibleSelect from "./CrucibleSelect.js";
-  import DiceThrowInput from "./DiceThrowInput.js";
+  import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
   import PageNavBar from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
-
-  class Result {
-    constructor (prefixes, suffixes, prefixRoll, suffixRoll) {
-      this.prefixRoll = prefixRoll
-      this.suffixRoll = suffixRoll
-      this.prefixes = prefixes;
-      this.suffixes = suffixes;
-
-      this.edit = true;
-      this.value = '';
-
-      this.selectedPrefix = [...prefixes][0];
-      this.selectedSuffix = [...suffixes][0];
-
-    }
-
-    clone () {
-      const clone = {...this};
-      Object.setPrototypeOf(clone, Result.prototype);
-      return clone;
-    }
-
-    isSubmittable () {
-      const elements = [this.prefixes, this.suffixes]
-      return elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
-    }
-
-    submit () {
-      if (this.isSubmittable()) {
-        this.edit = false
-        this.value = `${this.selectedPrefix}-${this.selectedSuffix}`;
-      }
-    }
-  }
 
   createApp({
     components: {
       CrucibleDataTable,
-      CrucibleResultInput,
-      DiceThrowInput,
-      CrucibleSelect,
+      CrucibleObjectGenerator,
       PageNavBar,
       PageFooter
     },
     setup() {
       const results = reactive([]);
-      const prefixRoll = ref([]);
-      const suffixRoll = ref([]);
+      const labels = ref(['Prefix', 'Suffix']);
 
       const prefixes = new Crucible([
         [ "Drossel", "Stern", "Sonnen", "Traum", "Dunst", "Schock" ],
@@ -132,51 +70,31 @@
 
       return {
         results,
-        prefixRoll,
-        suffixRoll,
+        labels,
         prefixes,
         suffixes
       }
     },
     methods: {
-      getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
-        const adjective = this.prefixes.getValue(adjectiveRoll);
-        const noun = this.suffixes.getValue(nounRoll);
+      getResult (rolls) {
+        const [prefixRoll, suffixRoll] = initRolls(rolls, 2)
 
-        const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
+        const prefix = this.prefixes.getValues(prefixRoll);
+        const suffix = this.suffixes.getValues(suffixRoll);
+
+        const data = [prefix, suffix]
+        const usedRolls = [prefixRoll, suffixRoll]
+        const selecetdValues = [[...prefix][0], [...suffix][0]]
+
+        const options = {
+          valueFormatter ([prefix, suffix]) {
+            return [`${prefix} -`, suffix]
+          }
+        }
+
+        const result = new CrucibleResult(data, this.labels, [], options, usedRolls, selecetdValues)
         result.submit();
         return result
-      },
-      rollInputValid(roll) {
-        return roll.length === 2 && roll[0] < 7 && roll[1] < 7
-      },
-      resetInput() {
-        this.adjectiveRoll = []
-        this.nounRoll = []
-      },
-      addResult (){
-        let result;
-        if (this.rollInputValid(this.prefixRoll)
-          && this.rollInputValid(this.suffixRoll)) {
-          result = this.getResult(this.prefixRoll, this.suffixRoll);
-        } else {
-          result = this.getResult();
-        }
-        this.results.push(result)
-        this.resetInput();
-      },
-      submitResult(index) {
-        this.results[index].submit();
-      },
-      duplicateResult (item) {
-        const index = this.results.indexOf(item)
-        const clone = this.results[index].clone();
-        clone.edit = true;
-        this.results.splice(index + 1, 0, clone);
-      },
-      deleteResult (item) {
-        const index = this.results.indexOf(item)
-        this.results.splice(index, 1)
       }
     }
   }).mount('#app')

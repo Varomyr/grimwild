@@ -14,47 +14,17 @@
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <h1 class="my-3">Wild Surge Crucible</h1>
-      <p>Zusammensetzen und Interpretieren</p>
-      <crucible-result-input :result-items="results"
-                             :submit="submitResult"
-                             :duplicate="duplicateResult"
-                             :delete="deleteResult">
-        <template v-slot:selects="slotProps">
-          <crucible-select v-model="slotProps.item.selectedNature"
-                           :option-items="slotProps.item.natures"
-                           empty-text="- Wort 1 wählen -">
-          </crucible-select>
-          <crucible-select v-model="slotProps.item.selectedDesire"
-                           :option-items="slotProps.item.desires"
-                           empty-text="- Wort 2 wählen -">
-          </crucible-select>
-        </template>
 
-        <template v-slot:index="slotProps">
-          <div class="col-2 py-2">
-            {{slotProps.index + 1}}: {{slotProps.item.natureRoll.join(', ')}} x {{slotProps.item.desireRoll.join(', ')}}
-          </div>
-        </template>
-
-
-      </crucible-result-input>
-
-      <div class="row my-3">
-        <dice-throw-input v-model="natureRoll"
-                          input-name="Wurf 1">
-        </dice-throw-input>
-        <dice-throw-input v-model="desireRoll"
-                          input-name="Wurf 2">
-        </dice-throw-input>
-        <div class="col">
-          <button type="button" class="btn btn-primary" @click="addResult()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
-        </div>
-      </div>
+      <crucible-object-generator heading="Wild Surge Generator"
+                                 description="Zusammensetzen und Interpretieren."
+                                 :roll-names="labels"
+                                 :get-result="getResult"
+                                 :model-value="results">
+      </crucible-object-generator>
 
       <crucible-data-table heading="Wild Surge Crucible Daten"
                            :crucibles="[natures, desires]"
-                           :crucible-names="['Wort 1', 'Wort 2']">
+                           :crucible-names="labels">
       </crucible-data-table>
     </div>
     <page-footer></page-footer>
@@ -64,61 +34,25 @@
   import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
   import { rollDice } from "./randomDice.js";
   import Crucible from "./Crucible.js";
+  import CrucibleResult from "./CrucibleResult.js";
+
 
   import CrucibleDataTable from "./CrucibleDataTable.js";
-  import CrucibleResultInput from "./CrucibleResultInput.js";
-  import CrucibleSelect from "./CrucibleSelect.js";
-  import DiceThrowInput from "./DiceThrowInput.js";
+  import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
   import PageNavBar  from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
 
-  class Result {
-    constructor (adjectives, nouns, adjectiveRoll, nounRoll) {
-      this.natureRoll = adjectiveRoll
-      this.desireRoll = nounRoll
-      this.natures = adjectives;
-      this.desires = nouns;
-
-      this.edit = true;
-      this.value = '';
-
-      this.selectedNature = [...adjectives][0];
-      this.selectedDesire = [...nouns][0];
-
-    }
-
-    clone () {
-      const clone = {...this};
-      Object.setPrototypeOf(clone, Result.prototype);
-      return clone;
-    }
-
-    isSubmittable () {
-      const elements = [this.natures, this.desires]
-      return elements.reduce((sum, curr) => sum + !!curr, 0) === 2;
-    }
-
-    submit () {
-      if (this.isSubmittable()) {
-        this.edit = false
-        this.value = `${this.selectedNature} ${this.selectedDesire}`;
-      }
-    }
-  }
 
   createApp({
     components: {
       CrucibleDataTable,
-      CrucibleResultInput,
-      DiceThrowInput,
-      CrucibleSelect,
+      CrucibleObjectGenerator,
       PageNavBar,
       PageFooter
     },
     setup() {
       const results = reactive([]);
-      const adjectiveRoll = ref([]);
-      const nounRoll = ref([]);
+      const labels = ref(['Word 1', 'Word 2'])
 
       const natures = new Crucible([
         [ "Haut", "Temperatur", "eisig", "Rauch", "Regen", "Blitz" ],
@@ -140,51 +74,27 @@
 
       return {
         results,
-        natureRoll: adjectiveRoll,
-        desireRoll: nounRoll,
+        labels,
         natures,
         desires
       }
     },
     methods: {
-      getResult (adjectiveRoll = rollDice(2), nounRoll = rollDice(2)) {
-        const adjective = this.natures.getValue(adjectiveRoll);
-        const noun = this.desires.getValue(nounRoll);
+      getResult (rolls = [[], []]) {
+        let [adjectiveRoll, nounRoll] = rolls
+        adjectiveRoll = adjectiveRoll.length ? adjectiveRoll : rollDice(2)
+        nounRoll = nounRoll.length ? nounRoll : rollDice(2)
 
-        const result = new Result(adjective, noun, adjectiveRoll, nounRoll)
+        const adjective = this.natures.getValues(adjectiveRoll);
+        const noun = this.desires.getValues(nounRoll);
+
+        const data = [adjective, noun]
+        const usedRolls = [adjectiveRoll, nounRoll];
+        const selectedValues = [[...adjective][0], [...noun][0]]
+
+        const result = new CrucibleResult(data, this.labels, [], {}, usedRolls, selectedValues)
         result.submit();
         return result
-      },
-      rollInputValid(roll) {
-        return roll.length === 2 && roll[0] < 7 && roll[1] < 7
-      },
-      resetInput() {
-        this.natureRoll = []
-        this.desireRoll = []
-      },
-      addResult (){
-        let result;
-        if (this.rollInputValid(this.natureRoll)
-          && this.rollInputValid(this.desireRoll)) {
-          result = this.getResult(this.natureRoll, this.desireRoll);
-        } else {
-          result = this.getResult();
-        }
-        this.results.push(result)
-        this.resetInput();
-      },
-      submitResult(index) {
-        this.results[index].submit();
-      },
-      duplicateResult (item) {
-        const index = this.results.indexOf(item)
-        const clone = this.results[index].clone();
-        clone.edit = true;
-        this.results.splice(index + 1, 0, clone);
-      },
-      deleteResult (item) {
-        const index = this.results.indexOf(item)
-        this.results.splice(index, 1)
       }
     }
   }).mount('#app')

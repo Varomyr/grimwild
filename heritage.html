@@ -14,46 +14,17 @@
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <h1 class="my-3">Abstammungs-Generator</h1>
-      <p>Wähle 2 oder 3 (Volk, Stimmung, Land), interpretiere dann das Ergebnis</p>
 
-      <crucible-result-input :result-items="heritage"
-                              :submit="submitHeritage"
-                              :duplicate="duplicateHeritage"
-                              :delete="deleteHeritage"
-                              v-slot:selects="slotProps">
-        <crucible-select v-model="slotProps.item.selectedFolk"
-                         :option-items="slotProps.item.folks"
-                         empty-text="- Volk wählen -">
-        </crucible-select>
-        <crucible-select v-model="slotProps.item.selectedMood"
-                         :option-items="slotProps.item.moods"
-                         empty-text="- Stimmung wählen -">
-        </crucible-select>
-        <crucible-select v-model="slotProps.item.selectedLand"
-                         :option-items="slotProps.item.lands"
-                         empty-text="- Land wählen -">
-        </crucible-select>
-      </crucible-result-input>
-
-      <div class="row mt-3">
-        <dice-throw-input v-model="folkRoll"
-                          input-name="Volkswurf">
-        </dice-throw-input>
-        <dice-throw-input v-model="moodRoll"
-                          input-name="Stimmungswurf">
-        </dice-throw-input>
-        <dice-throw-input v-model="landRoll"
-                          input-name="Landswurf">
-        </dice-throw-input>
-        <div class="col">
-          <button type="button" class="btn btn-primary" @click="addHeritage()"><i class="bi bi-file-earmark-plus"></i> Hinzufügen</button>
-        </div>
-      </div>
+      <crucible-object-generator heading="Abstammungs-Generator"
+                                 description="Wähle 2 oder 3 (Volk, Stimmung, Land), interpretiere dann das Ergebnis"
+                                 :roll-names="labels"
+                                 :get-result="getResult"
+                                 :model-value="results">
+      </crucible-object-generator>
 
       <crucible-data-table heading="Abstammungs-Daten"
                            :crucibles="[folk, mood, land]"
-                           :crucible-names="['Volk', 'Stimmung', 'Land']">
+                           :crucible-names="labels">
       </crucible-data-table>
 
     </div>
@@ -63,79 +34,25 @@
 </body>
 <script type="module">
   import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-  import { rollDice } from "./randomDice.js";
+  import { initRolls, countNotEmpty} from "./utils.js";
   import Crucible from "./Crucible.js";
+  import CrucibleResult from "./CrucibleResult.js";
 
   import CrucibleDataTable from "./CrucibleDataTable.js";
-  import CrucibleSelect from "./CrucibleSelect.js";
-  import DiceThrowInput from "./DiceThrowInput.js";
-  import CrucibleResultInput from "./CrucibleResultInput.js";
+  import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
   import PageNavBar from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
-
-  class Heritage {
-    constructor (folks, moods, lands) {
-      this.folks = folks;
-      this.moods = moods;
-      this.lands = lands;
-
-      this.edit = true;
-      this.value = '';
-
-      this.selectedFolk = [...folks][0];
-      this.selectedMood = [...moods][0];
-      this.selectedLand = [...lands][0];
-    }
-
-    clone () {
-      const clone = {...this};
-      Object.setPrototypeOf(clone, Heritage.prototype);
-      return clone;
-    }
-
-    isSubmittable () {
-      const elements = [this.selectedFolk, this.selectedMood, this.selectedLand]
-      return elements.reduce((sum, curr) => sum + !!curr, 0) >= 2;
-    }
-
-    submit () {
-      function createBindingPhrase (word) {
-        if (word.endsWith("en")
-          || word.endsWith("ln")
-          || word.endsWith("el")
-          || word.endsWith("ion")
-          || word.endsWith("e")
-          || word.endsWith("er")
-          || word.endsWith("is")
-          || word.endsWith("lt")
-          || word.endsWith("dt")) {
-          return " der "
-        }
-
-        return " des "
-      }
-      const elements = [this.selectedMood, this.selectedLand]
-      if (this.isSubmittable()) {
-        this.edit = false
-        this.value = (this.selectedFolk ? `${this.selectedFolk}${createBindingPhrase(this.selectedLand)}` : '') + elements.join(' ')
-      }
-    }
-  }
 
   createApp({
     components: {
       CrucibleDataTable,
-      CrucibleSelect,
-      DiceThrowInput,
-      CrucibleResultInput,
+      CrucibleObjectGenerator,
       PageNavBar,
       PageFooter
     },
     setup() {
-      const heritage = reactive([]);
-      const folkRoll = ref([]);
-      const moodRoll = ref([]);
-      const landRoll = ref([]);
+      const results = reactive([]);
+      const labels = ref(['Volk', 'Stimmung', 'Land'])
 
       const folk = new Crucible([
         [ "Landstreicher", "Vogelvolk", "Reisende", "Goblins", "Insulaner", "Fischer" ],
@@ -165,57 +82,52 @@
       ]);
 
       return {
-        heritage,
-        folkRoll,
-        moodRoll,
-        landRoll,
+        results,
+        labels,
         folk,
         mood,
         land
       }
     },
     methods: {
-      getHeritage (styleRoll, essenceRoll, formRoll) {
-        const folks = this.folk.getValue(styleRoll || rollDice(2));
-        const moods = this.mood.getValue(essenceRoll || rollDice(2));
-        const lands = this.land.getValue(formRoll || rollDice(2));
+      getResult (rolls) {
+        const [folkRoll, moodRoll, landRoll] = initRolls(rolls, 3)
+        const folks = this.folk.getValues(folkRoll);
+        const moods = this.mood.getValues(moodRoll);
+        const lands = this.land.getValues(landRoll);
 
-        const heritage = new Heritage(folks, moods, lands)
-        heritage.submit()
-        return heritage
-      },
-      rollInputValid(roll) {
-        return roll.length === 2 && roll[0] < 7 && roll[1] < 7
-      },
-      resetInput() {
-        this.folkRoll = []
-        this.moodRoll = []
-        this.landRoll = []
-      },
-      addHeritage (){
-        let heritage;
-        if (this.rollInputValid(this.folkRoll)
-          && this.rollInputValid(this.moodRoll)
-          &&  this.rollInputValid(this.landRoll)) {
-          heritage = this.getHeritage(this.folkRoll, this.moodRoll, this.landRoll);
-        } else {
-          heritage = this.getHeritage();
+        const data = [folks, moods, lands]
+        const usedRolls = [folkRoll, moodRoll, landRoll]
+        const selectedValues = [[...folks][0], [...moods][0], [...lands][0]]
+
+        const options = {
+          validator (elements) {
+            return elements.reduce(countNotEmpty, 0) >= 2
+          },
+          valueFormatter ([folk, mood, land]) {
+            function createBindingPhrase (word) {
+              if (word.endsWith("en")
+                || word.endsWith("ln")
+                || word.endsWith("el")
+                || word.endsWith("ion")
+                || word.endsWith("e")
+                || word.endsWith("er")
+                || word.endsWith("is")
+                || word.endsWith("lt")
+                || word.endsWith("dt")) {
+                return " der "
+              }
+
+              return " des "
+            }
+
+            return [folk ? `${folk}${createBindingPhrase(land)}` : '', mood, land]
+          }
         }
-        this.heritage.push(heritage)
-        this.resetInput();
-      },
-      submitHeritage(index) {
-        this.heritage[index].submit();
-      },
-      deleteHeritage (item) {
-        const index = this.heritage.indexOf(item)
-        this.heritage.splice(index, 1)
-      },
-      duplicateHeritage (item) {
-        const index = this.heritage.indexOf(item)
-        const clone = this.heritage[index].clone();
-        clone.edit = true;
-        this.heritage.splice(index + 1, 0, clone);
+
+        const result = new CrucibleResult(data, this.labels, [], options, usedRolls, selectedValues)
+        result.submit()
+        return result
       }
     }
   }).mount('#app')
