@@ -35,6 +35,7 @@ export default {
               </a>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="building.html">Building</a></li>
+                <li><a class="dropdown-item" href="settlement.html">Settlements</a></li>
               </ul>
             </li>
           </ul>

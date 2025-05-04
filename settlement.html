@@ -14,7 +14,7 @@
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <crucible-object-generator heading="Building Crucible"
+      <crucible-object-generator heading="Settlement Crucible"
                                  description="Zusammensetzen und Interpretieren."
                                  :roll-names="labels"
                                  :get-result="getResult"
@@ -52,21 +52,21 @@
       const labels = ref(['Stil', 'Gebäude'])
 
       const style = new Crucible([
-        ["uralt", "spukend", "heilig", "schattenhaft", "festlich", "schäbig"],
-        ["bröckelnd", "grün", "weitläufig", "überwuchert", "trist", "üppig"],
-        ["verschnörkelt", "vergessen", "geheimnisvoll", "arkan", "tadellos", "einsam"],
-        ["verwittert", "robust", "blühend", "geschäftig", "grob", "schmutzig"],
-        ["verwunschen", "bescheiden", "baufällig", "abgelegen", "ramponiert", "verstaubt"],
-        ["vergoldet", "versteckt", "majestätisch", "düster", "hoch aufragend", "trostlos"]
+        ["geschäftig", "wohlhabend", "antik", "abgelegen", "verschneit", "staubig"],
+        ["ruhig", "öd", "handeltreibend", "vergessen", "schattig", "windig"],
+        ["ummauert", "befestigt", "heimgesucht", "friedlich", "abgelegen", "küstennah"],
+        ["versteckt", "überwuchert", "neblig", "hügelig", "karg", "überflutet"],
+        ["heilig", "blühend", "nomadisch", "sonnenbeschienen", "felsig", "gebirgig"],
+        ["isoliert", "runiert", "verlassen", "bewaldet", "ausgedehnt", "zurückgewonnen"]
       ]);
 
       const building = new Crucible([
-        ["Alchemist", "Schreinei", "Tempel", "Wachturm", "Edelsteinschleiferei", "Sternwarte"],
-        ["Docks", "Kaserne", "Waffenkammer", "Zunfthalle", "Schreiber", "Friedhof"],
-        ["Waisenhaus", "Stall", "Turm", "Markt", "Bibliothek", "Brauerei"],
-        ["Bäckerei", "Hufschmied", "Arena", "Bergfried", "Gefängnis", "Teehaus"],
-        ["Kräuterkundiger", "Taverne", "Gasthaus", "Dachtecker", "Herrenhaus", "Badehaus"],
-        ["Schreinerei", "Wahrsagerin", "Weberei", "Glasbläserei", "Lagerhaus", "Uhrturm"]
+        ["Dorf", "Lager", "Hafen", "Stützpunkt", "Oase", "Uhr" ],
+        ["Außenposten", "Siedlung", "Markt", "Festung", "Herrenhaus", "Versteck"],
+        ["Stadt", "Kolonie", "Wachturm", "Ranch", "Hafen",  "Höhle"],
+        ["Lager", "Festung", "Kreuzung", "Hain", "Klippen", "Gehöft"],
+        ["Handelsposten", "Weiler", "Heiligtum", "Platz", "Gipfel", "Kloster"],
+        ["Zitadelle", "Zuflucht", "Kommune", "Gehöft", "Kaverne", "Bastion"]
       ]);
 
       return {
@@ -99,6 +99,7 @@
                 || noun.endsWith("ht")
                 || noun.endsWith("land")
                 || noun.endsWith("v")
+                || noun.endsWith("ck")
                 || noun.endsWith("th")
                 || noun.endsWith("ma")
                 || noun.endsWith("uer")
