@@ -151,7 +151,6 @@
         const forms = this.form.getValues(formRoll);
 
         const data = [styles, essences, forms, this.magicSchools]
-        const labels = ['Stil', 'Wesen', 'Form', 'Schule der Magie']
         const descriptions = [undefined, undefined, undefined, magicSchoolDescriptions]
         const options = {
           validator ([style, essence, form, school]) {
@@ -163,7 +162,7 @@
         }
          const usedRolls = [styleRoll, essenceRoll, formRoll]
 
-        return new CrucibleResult(data, labels, descriptions, options, usedRolls)
+        return new CrucibleResult(data, this.labels, descriptions, options, usedRolls)
       }
     }
   }).mount('#app')

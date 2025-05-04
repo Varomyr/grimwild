@@ -10,7 +10,7 @@ export default class CrucibleResult {
     this.descriptions = descriptions
     this.options = options
     this.rolls = rolls
-    this.selectedValues = selectedValues || new Array(this.size).fill('');
+    this.selectedValues = selectedValues || data.map(x => [...x][0]);
 
     this.readonly = false
     this.edit = edit;

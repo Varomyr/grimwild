@@ -14,15 +14,15 @@
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <crucible-object-generator heading="GM Crucible"
+      <crucible-object-generator heading="Building Crucible"
                                  description="Zusammensetzen und Interpretieren."
                                  :roll-names="labels"
                                  :get-result="getResult"
                                  :model-value="results">
       </crucible-object-generator>
 
-      <crucible-data-table heading="GM Crucible Daten"
-                           :crucibles="[adjectives, nouns]"
+      <crucible-data-table heading="Building Crucible Daten"
+                           :crucibles="[style, building]"
                            :crucible-names="labels">
       </crucible-data-table>
     </div>
@@ -39,6 +39,7 @@
   import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
   import PageNavBar from "./PageNavBar.js";
   import PageFooter from "./PageFooter.js";
+  import { rollDice } from "./randomDice.js";
 
   createApp({
     components: {
@@ -49,38 +50,38 @@
     },
     setup() {
       const results = ref([]);
-      const labels = ref(['Adjektive', 'Substantive'])
+      const labels = ref(['Stil', 'Gebäude'])
 
-      const adjectives = new Crucible([
-        [ "zäh", "ruhig", "prekär", "wild", "mysteriös", "rustikal" ],
-        [ "gedämpft", "gealtert", "romantisch", "bedrohlich", "rätselhaft", "unheimlich" ],
-        [ "kaputt", "schwindend", "fern", "lebensgefährlich", "düster", "angespannt" ],
-        [ "vergessen", "reichlich", "versteckt", "verwelkt", "chaotisch", "drohend" ],
-        [ "festlich", "verloren", "immens", "heiter", "lebendig", "flackernd" ],
-        [ "zerklüftet", "zersplittert", "heilig", "schonungslos", "verworren", "verdreht" ]
+      const style = new Crucible([
+        ["uralt", "spukend", "heilig", "schattenhaft", "festlich", "schäbig"],
+        ["bröckelnd", "grün", "weitläufig", "überwuchert", "trist", "üppig"],
+        ["verschnörkelt", "vergessen", "geheimnisvoll", "arkan", "tadellos", "einsam"],
+        ["verwittert", "robust", "blühend", "geschäftig", "grob", "schmutzig"],
+        ["verwunschen", "bescheiden", "baufällig", "abgelegen", "ramponiert", "verstaubt"],
+        ["vergoldet", "versteckt", "majestätisch", "düster", "hoch aufragend", "trostlos"]
       ]);
 
-      const nouns = new Crucible([
-        [ "Reise", "Kreuzung", "Spalt", "Plan", "Knotenpunkt(Nexus)", "Team" ],
-        [ "Beben", "Trümmer", "Symbol", "Narbe", "Archiv", "Abgrund" ],
-        [ "Heiligtum", "Verrat", "Pfad", "Ödland", "Hilfe", "Mysterium" ],
-        [ "Gipfel", "Schwelle", "Grenze", "Leuchtfeuer", "Geheimnis", "Wand" ],
-        [ "Territorium", "Gerücht", "Unentschieden", "Zwietracht", "Labyrinth", "Pakt" ],
-        [ "Dilemma", "Tradition", "Jackpot", "Omen", "Täuschung", "Illusion" ]
+      const building = new Crucible([
+        ["Alchemist", "Schreinei", "Tempel", "Wachturm", "Edelsteinschleiferei", "Sternwarte"],
+        ["Docks", "Kaserne", "Waffenkammer", "Zunfthalle", "Schreiber", "Friedhof"],
+        ["Waisenhaus", "Stall", "Turm", "Markt", "Bibliothek", "Brauerei"],
+        ["Bäckerei", "Hufschmied", "Arena", "Bergfried", "Gefängnis", "Teehaus"],
+        ["Kräuterkundiger", "Taverne", "Gasthaus", "Dachtecker", "Herrenhaus", "Badehaus"],
+        ["Schreinerei", "Wahrsagerin", "Weberei", "Glasbläserei", "Lagerhaus", "Uhrturm"]
       ]);
 
       return {
         results,
         labels,
-        adjectives,
-        nouns
+        style,
+        building
       }
     },
     methods: {
       getResult (rolls) {
         const [adjectiveRoll, nounRoll] = initRolls(rolls, 2)
-        const adjective = this.adjectives.getValues(adjectiveRoll);
-        const noun = this.nouns.getValues(nounRoll);
+        const adjective = this.style.getValues(adjectiveRoll);
+        const noun = this.building.getValues(nounRoll);
 
         const data = [adjective, noun]
         const options = {
@@ -90,7 +91,7 @@
                 || noun.endsWith("acht")
                 || noun.endsWith("ung")
                 || noun.endsWith("on")
-                || noun.endsWith("Wand")
+                || noun.endsWith("ek")
                 || noun.endsWith("mer")){
                 return "e"
               }
@@ -101,7 +102,6 @@
                 || noun.endsWith("v")
                 || noun.endsWith("th")
                 || noun.endsWith("ma")
-                || noun.endsWith("m")
                 || noun.endsWith("uer")
                 || noun.endsWith("ol")){
                 return "es"
