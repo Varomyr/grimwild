@@ -23,6 +23,7 @@ export default {
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="heritage.html">Heritage</a></li>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="bardsong.html">Bardsong</a></li>
                 <li><a class="dropdown-item" href="herbalism.html">Herbalism</a></li>
                 <li><a class="dropdown-item" href="patron.html">Patron</a></li>
                 <li><a class="dropdown-item" href="surge.html">Wild Surge</a></li>
@@ -36,6 +37,7 @@ export default {
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="building.html">Building</a></li>
                 <li><a class="dropdown-item" href="settlement.html">Settlements</a></li>
+                <li><a class="dropdown-item" href="sites.html">Sites</a></li>
               </ul>
             </li>
           </ul>

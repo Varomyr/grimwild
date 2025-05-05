@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html  lang="de">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <meta charset="UTF-8">
+  <title>Grimwild - GM Crucible</title>
+
+</head>
+<body>
+  <div id="app">
+    <page-nav-bar></page-nav-bar>
+    <div class="container">
+      <crucible-object-generator heading="Sites Crucible"
+                                 description="Zusammensetzen und Interpretieren."
+                                 :roll-names="labels"
+                                 :get-result="getResult"
+                                 :model-value="results">
+      </crucible-object-generator>
+
+      <crucible-data-table heading="Building Crucible Daten"
+                           :crucibles="[style, building]"
+                           :crucible-names="labels">
+      </crucible-data-table>
+    </div>
+    <page-footer></page-footer>
+  </div>
+</body>
+<script type="module">
+  import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+  import { initRolls } from "./utils.js";
+  import Crucible from "./Crucible.js";
+  import CrucibleResult from "./CrucibleResult.js";
+
+  import CrucibleDataTable from "./CrucibleDataTable.js";
+  import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
+  import PageNavBar from "./PageNavBar.js";
+  import PageFooter from "./PageFooter.js";
+
+  createApp({
+    components: {
+      CrucibleDataTable,
+      CrucibleObjectGenerator,
+      PageNavBar,
+      PageFooter
+    },
+    setup() {
+      const results = ref([]);
+      const labels = ref(['Stil', 'Gebäude'])
+
+      const style = new Crucible([
+        ["uralt", "verlassen", "verflucht", "gefroren", "verkohlt", "versteckt"],
+        ["vergessen", "verloren", "verzaubert", "moosig", "klar", "abgelegen"],
+        ["heilig", "mystisch", "unheimlich", "mondbeschienen", "neblig", "eingestürzt"],
+        ["heimgesucht", "versunken", "vergraben", "ruiniert", "schweflig", "schwelend"],
+        ["zerbröckelt", "zertrümmert", "verbrannt", "unterirdisch", "gesegnet", "windverweht"],
+        ["versteckt", "überwuchert", "verödet", "nachhallend", "vergessen", "schattig"]
+      ]);
+
+      const building = new Crucible([
+        ["Altar", "Kreis", "Brunnen", "Kammer", "Labyrinth", "Torbogen"],
+        ["Denkmal", "Heiligtum", "Turm", "Obelisk", "Brunnen", "Heiligtum"],
+        ["Tempel", "Katakomben", "Krypta", "Steinhaufen", "Portal", "Halle"],
+        ["Hain", "Schrein", "Quelle", "Säule", "Grotte", "Bergwerk"],
+        ["Ruine", "Kaverne", "Mausoleum", "Grube", "Friedhof", "Höhle"],
+        ["Grabmal", "Statue", "Tor", "Thron", "Kerker", "Gewölbe"]
+      ]);
+
+      return {
+        results,
+        labels,
+        style,
+        building
+      }
+    },
+    methods: {
+      getResult (rolls) {
+        const [adjectiveRoll, nounRoll] = initRolls(rolls, 2)
+        const adjective = this.style.getValues(adjectiveRoll);
+        const noun = this.building.getValues(nounRoll);
+
+        const data = [adjective, noun]
+        const options = {
+          valueFormatter ([adjective, noun]) {
+            function findSuffix(noun) {
+              if (noun.endsWith("e")
+                || noun.endsWith("a")
+                || noun.endsWith("acht")
+                || noun.endsWith("ung")
+                || noun.endsWith("ben")
+                || noun.endsWith("ek")
+                || noun.endsWith("mer")){
+                return "e"
+              }
+              if (noun.endsWith("s")
+                || noun.endsWith("ht")
+                || noun.endsWith("land")
+                || noun.endsWith("v")
+                || noun.endsWith("ck")
+                || noun.endsWith("al")
+                || noun.endsWith("or")
+                || noun.endsWith("um")
+                || noun.endsWith("th")
+                || noun.endsWith("ma")
+                || noun.endsWith("uer")
+                || noun.endsWith("ol")){
+                return "es"
+              } else {
+                return "er"
+              }
+            }
+            return [`${adjective}${findSuffix(noun)}`, noun];
+          }
+        }
+        const usedRolls = [adjectiveRoll, nounRoll];
+        const selectedValues = [[...adjective][0], [...noun][0]]
+
+        const result = new CrucibleResult(data, this.labels, [], options, usedRolls, selectedValues)
+        result.submit();
+        return result
+      }
+    }
+  }).mount('#app')
+
+</script>
+</html>
