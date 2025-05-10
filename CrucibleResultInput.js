@@ -31,15 +31,15 @@ export default {
         <div v-if="item.edit" class="col">
           <div class="row">
             <slot name="selects" :item="item">
-            <span v-for="(options, i) in item.data">
-              <crucible-select v-if="options.length"
+            <template v-for="(options, i) in item.data">
+              <crucible-select v-if="options != []"
                                 v-model="item.selectedValues[i]"
                                 :empty-text="emptyTextTemplate(item.labels[i])"
                                 :option-items="options"
                                 :item-titles="item.descriptions[i]">
                </crucible-select>
                <input v-else class="form-control" v-model="item.selectedValues[i]" :placeholder="emptyTextTemplate(item.labels[i])"/>
-            </span>
+            </template>
                
             </slot>
           </div>
