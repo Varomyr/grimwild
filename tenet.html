@@ -84,7 +84,7 @@
     },
     methods: {
       getResult (rolls) {
-        const [oathRoll, addresseeRoll, reasonRoll] = initRolls(rolls, 3, (_, index) => { return [index === 2 ? 2 : 1, randomDie(6)]})
+        const [oathRoll, addresseeRoll, reasonRoll] = initRolls(rolls, 3, (_, index) => { return [index === 2 ? randomDie(2) : 1, randomDie(6)]})
         const oath = this.oaths.getValue(oathRoll);
         const addressee = this.addressees.getValue(addresseeRoll);
         const reason = this.reasons.getValue(reasonRoll);
@@ -98,22 +98,6 @@
             return elements.reduce(countNotEmpty, 0) >= 2
           },
           valueFormatter ([oath, x, addressee, y, reason, comment]) {
-            function createBindingPhrase (word) {
-              if (word.endsWith("en")
-                || word.endsWith("ln")
-                || word.endsWith("el")
-                || word.endsWith("ion")
-                || word.endsWith("e")
-                || word.endsWith("er")
-                || word.endsWith("is")
-                || word.endsWith("lt")
-                || word.endsWith("dt")) {
-                return " der "
-              }
-
-              return " des "
-            }
-
             return [`Ich schwöre ${oath}`, x, `${addressee} zu bringen`, y, `${reason}`, comment]
           }
         }

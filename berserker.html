@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <meta charset="UTF-8">
+  <title>Grimwild - Fenzy-Generator</title>
+
+</head>
+<body>
+  <div id="app">
+    <page-nav-bar></page-nav-bar>
+    <div class="container">
+
+      <crucible-object-generator heading="Berserker-Generator"
+                                 description="Wähle 2 und setze sie zusammen."
+                                 :roll-names="labels"
+                                 :get-result="getResult"
+                                 :model-value="results">
+      </crucible-object-generator>
+
+      <crucible-data-table heading="Berserker-Daten"
+                           :crucibles="[frenzySources, scars]"
+                           :crucible-names="[`${labels[0]}/${labels[1]}`, labels[2]]">
+      </crucible-data-table>
+
+    </div>
+    <page-footer></page-footer>
+
+  </div>
+</body>
+<script type="module">
+  import { createApp, ref, reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+  import { initRolls, countNotEmpty} from "./utils.js";
+  import { randomDie } from "./randomDice.js";
+  import Crucible from "./Crucible.js";
+  import CrucibleResult from "./CrucibleResult.js";
+
+  import CrucibleDataTable from "./CrucibleDataTable.js";
+  import CrucibleObjectGenerator from "./CrucibleObjectGenerator.js";
+  import PageNavBar from "./PageNavBar.js";
+  import PageFooter from "./PageFooter.js";
+
+  createApp({
+    components: {
+      CrucibleDataTable,
+      CrucibleObjectGenerator,
+      PageNavBar,
+      PageFooter
+    },
+    setup() {
+      const results = reactive([]);
+      const labels = ref(['Ursache der Raserei', 'Verachtung', 'Narben'])
+
+      const frenzySources = new Crucible([
+        ["Vorbereitungsritual", "Trainierte Schmerztoleranz", "Langer Konsum seltsamer Sunstanzen", "Kraft aus den Geistern der Ahnen ziehen", "Ursprüngliche Kraft aus der Wildnis ziehen", "Kanalisieren von Erinnerungen, die du nie vergessen wirst"],
+        ["Visionen schrecklicher oder heldenhafter Szenen", "Tiefer meditativer Fokus", "Blutpakt mit einer verwandten Macht", "Unzählige Kämpfe, unzählige Verletzungen", "Deinen Geist an ein physisches Token binden", "Du weist tatächlich selbst nicht warum du so bist."]
+      ]);
+
+      const scars = new Crucible([
+        ["Schiefe gebrochene Nase", "Netz tiefer Schnittnarben", "Dauerhaft gespaltene Knöchel", "Leere Augenhöhle", "Eingeschlagene Zähne", "Blumenkohlohr"],
+        ["Wildes, zerzaustes Haar", "Muskeln geknotet wie Eisen", "Mehrere fehlende Finger", "Gezackte Brandlinien", "Ausgerissene Krallenspuren", "Runennarben durch Magie"],
+        ["Abgerissene Ohrläppchen oder Ohrspitzen", "Tiefe, kauterisierte Wunde", "Gebrochene Kieferpartie", "Zertrümmerter Fuß", "Eingeschlagener Schädel", "Du hast keinen Kratzer"]
+      ]);
+
+
+      return {
+        results,
+        labels,
+        frenzySources,
+        scars
+      }
+    },
+    methods: {
+      getResult (rolls) {
+        const [sourceRoll, disdainRoll, scarRoll] = initRolls(rolls, 3, (_, index) => { return [index === 2 ? randomDie(3) : randomDie(2), randomDie(6)]})
+        const source = this.frenzySources.getValue(sourceRoll);
+        const disdain = this.frenzySources.getValue(disdainRoll);
+        const scar = this.scars.getValue(scarRoll);
+
+        const data = [this.frenzySources.data.flat(), this.frenzySources.data.flat(), this.scars.data.flat()]
+        const usedRolls = [sourceRoll, disdainRoll, scarRoll]
+        const selectedValues = [ source , disdain, scar ]
+
+        const options = {
+          validator (elements) {
+            return elements.reduce(countNotEmpty, 0) === 3
+          },
+          valueFormatter ([source, disdain, scar]) {
+
+            return [`Quelle der Raserei: ${source}, `, `Verachtung für: ${disdain}, `, `Narben: ${scar}`]
+          }
+        }
+
+        const result = new CrucibleResult(data, this.labels, [], options, usedRolls, selectedValues)
+        result.submit()
+        return result
+      }
+    }
+  }).mount('#app')
+
+</script>
+</html>
