@@ -28,6 +28,7 @@ export default {
                 <li><a class="dropdown-item" href="patron.html">Patron</a></li>
                 <li><a class="dropdown-item" href="surge.html">Wild Surge</a></li>
                 <li><a class="dropdown-item" href="spellcrucible.html">Spells</a></li>
+                <li><a class="dropdown-item" href="tenet.html">Tenets</a></li>
               </ul>
             </li>
             <li class="nav-item dropdown">
