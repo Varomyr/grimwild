@@ -39,6 +39,7 @@ export default {
                 <li><a class="dropdown-item" href="barrier.html">Barriers</a></li>
                 <li><a class="dropdown-item" href="curiosities.html">Curiosities</a></li>
                 <li><a class="dropdown-item" href="dangers.html">Dangers</a></li>
+                <li><a class="dropdown-item" href="factions.html">Factions</a></li>
                 <li><a class="dropdown-item" href="settlement.html">Settlements</a></li>
                 <li><a class="dropdown-item" href="sites.html">Sites</a></li>
               </ul>
