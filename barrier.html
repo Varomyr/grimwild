@@ -14,14 +14,14 @@
   <div id="app">
     <page-nav-bar></page-nav-bar>
     <div class="container">
-      <crucible-object-generator heading="Kuriositäten Crucible"
+      <crucible-object-generator heading="Barrier Crucible"
                                  description="Zusammensetzen und Interpretieren."
                                  :roll-names="labels"
                                  :get-result="getResult"
                                  :model-value="results">
       </crucible-object-generator>
 
-      <crucible-data-table heading="Kuriositäten Crucible Daten"
+      <crucible-data-table heading="Barrier Crucible Daten"
                            :crucibles="[style, building]"
                            :crucible-names="labels">
       </crucible-data-table>
@@ -49,25 +49,21 @@
     },
     setup() {
       const results = ref([]);
-      const labels = ref(['Adjektiv', 'Kuriosität'])
+      const labels = ref(['Adjektiv', 'Barriere'])
 
-      const style = new Crucible([
-        ["nachwirkend", "geheimnisvoll", "tanzend", "neugierig", "singend", "niedrig"],
-        ["seltsam", "weit entfernt", "weich", "melancholisch", "seltsam", "glitzernd"],
-        ["schwach", "eindringlich", "leuchtend", "brummend", "blass", "dunstig"],
-        ["widerhallend", "verborgen", "verblassend", "schattenhaft", "bunt", "glitzernd"],
-        ["flackernd", "pulsierend", "flüsternd", "strahlend", "nachhallend", "rumpelnd"],
-        ["schimmernd", "ätherisch", "treibend", "bewegend", "einhüllend", "schwebend"]
-      ]);
+      const style = new Crucible([["zerklüftet", "tief", "zerklüftet", "schattig", "karg", "dicht"],
+        ["steil", "eng", "dornig", "gefroren", "sumpfig", "heulend"],
+        ["schlammig", "überwuchert", "dunkel", "neblig", "erstickt", "sinkend"],
+        ["verschlungen", "schlüpfrig", "gebrochen", "gewunden", "verworren", "rau"],
+        ["dicht", "windig", "schneebedeckt", "tückisch", "rasend", "eisig"],
+        ["felsig", "uneben", "sumpfig", "beweglich", "steinig", "rollend"]]);
 
-      const building = new Crucible([
-        ["Rauch", "Leuchten", "Baumgrenze", "Steingesicht", "Monolith", "Wolke"],
-        ["Obelisk", "Kirchturm", "Strahl", "Silhouette", "Spiegelung", "Baldachin"],
-        ["Turm", "Wasserfall", "Statue", "Brücke", "Biegung", "Mauer"],
-        ["Lagerfeuer", "Bogen", "Grabstein", "Tor", "Licht", "Schlucht"],
-        ["Säule", "Ruine", "Denkmal", "Lichter", "Schlucht", "Krater"],
-        ["Nebel", "Lagerfeuer", "Klippe", "Kirchturm", "Höhle", "Hügelkuppe"]
-      ]);
+      const building = new Crucible([["Schlucht", "Wald", "Hügel", "Sumpf", "Gestrüpp", "Geröll"],
+        ["Klippen", "Bergrücken", "Tal", "Gletscherspalte", "Felsen", "Moor"],
+        ["Pfad", "Pass", "Schlucht", "Pfad", "Gipfel", "Wüste"],
+        ["Dickicht", "Sumpf", "Fluss", "Schiefer", "Gletscher", "Gebüsch"],
+        ["Moor", "Höhlen", "Brombeersträucher", "Wattenmeer", "Untiefen", "Eisdecke"],
+        ["Hänge", "Gestrüpp", "Lava", "Bäume", "Tundra", "Unterholz"]]);
 
       return {
         results,
@@ -88,8 +84,7 @@
             function findSuffix(noun) {
               if (noun.endsWith("e")
                 || noun.endsWith("a")
-                || noun.endsWith("ucht")
-                || noun.endsWith("hter")
+                || noun.endsWith("acht")
                 || noun.endsWith("ung")
                 || noun.endsWith("ben")
                 || noun.endsWith("ek")
@@ -100,7 +95,6 @@
                 || noun.endsWith("ht")
                 || noun.endsWith("land")
                 || noun.endsWith("v")
-                || noun.endsWith("cht")
                 || noun.endsWith("ck")
                 || noun.endsWith("al")
                 || noun.endsWith("or")
