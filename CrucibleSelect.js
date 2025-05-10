@@ -4,7 +4,7 @@ export default {
     return {props}
   },
   template: `
-    <div class="col">
+    <div class="col-3">
       <select class="form-select" :value="props.modelValue" :title="(itemTitles||[])[props.modelValue]" @change="$emit('update:modelValue', $event.target.value)">
         <option v-for="item in ['' , ...props.optionItems]" :title="(itemTitles||[])[item]" :value="item">{{item || props.emptyText}}</option>
       </select>

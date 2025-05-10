@@ -32,13 +32,15 @@ export default {
           <div class="row">
             <slot name="selects" :item="item">
             <template v-for="(options, i) in item.data">
-              <crucible-select v-if="options != []"
+              <crucible-select v-if="Array.isArray(options) && options.length"
                                 v-model="item.selectedValues[i]"
                                 :empty-text="emptyTextTemplate(item.labels[i])"
                                 :option-items="options"
                                 :item-titles="item.descriptions[i]">
                </crucible-select>
-               <input v-else class="form-control" v-model="item.selectedValues[i]" :placeholder="emptyTextTemplate(item.labels[i])"/>
+               <div v-else class="col-4">
+                 <input  class="form-control" v-model="item.selectedValues[i]" :placeholder="emptyTextTemplate(item.labels[i])"/>
+               </div>
             </template>
                
             </slot>
