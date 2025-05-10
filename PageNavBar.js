@@ -24,6 +24,7 @@ export default {
                 <li><a class="dropdown-item" href="heritage.html">Heritage</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="bardsong.html">Bardsong</a></li>
+                <li><a class="dropdown-item" href="berserker.html">Berserker</a></li>
                 <li><a class="dropdown-item" href="herbalism.html">Herbalism</a></li>
                 <li><a class="dropdown-item" href="patron.html">Patron</a></li>
                 <li><a class="dropdown-item" href="surge.html">Wild Surge</a></li>
