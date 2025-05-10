@@ -8,7 +8,7 @@ class Crucible {
   }
 
   getValues ([x,y]) {
-    return new Set([this.getValue([x ,y]), this.getValue([y, x])]);
+    return [...new Set([this.getValue([x ,y]), this.getValue([y, x])])];
   }
 }
 
